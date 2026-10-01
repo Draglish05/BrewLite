@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 // Khuôn dữ liệu 1 món (giống Product bên backend)
 type Product = {
@@ -50,13 +51,13 @@ export default function Home() {
     content = (
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {products.map((p) => (
-          <div key={p.id} className="rounded-xl border bg-white text-gray-900 shadow">
+          <Link key={p.id} href={'/products/' + p.id} className="rounded-xl border bg-white text-gray-900 shadow hover:shadow-lg">
             <img src={p.imageUrl} alt={p.name} className="h-40 w-full rounded-t-xl object-cover" />
             <div className="p-3">
               <h2 className="font-semibold">{p.name}</h2>
               <p className="text-amber-700">{p.price.toLocaleString('vi-VN')}đ</p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     );
