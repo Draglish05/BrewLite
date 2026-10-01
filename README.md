@@ -8,7 +8,7 @@
 |---|---|
 | Frontend | Next.js (React, TypeScript), TailwindCSS |
 | Backend | NestJS (TypeScript), REST API |
-| CSDL | PostgreSQL + Prisma |
+| CSDL | PostgreSQL + TypeORM |
 | DevOps | Docker Compose, Git |
 
 ## Cấu trúc thư mục
@@ -27,6 +27,16 @@ BrewLite/
 
 ## Chạy dự án (môi trường phát triển)
 
+### 0. Database (PostgreSQL bằng Docker)
+
+Mở Docker Desktop, rồi tại thư mục gốc:
+
+```bash
+docker compose up -d
+```
+
+PostgreSQL chạy ở cổng **5433** (user / mật khẩu / database: `brewlite`). Khi backend khởi động lần đầu, bảng `products` được tạo tự động và thêm 4 món mẫu.
+
 ### 1. Backend
 
 ```bash
@@ -36,7 +46,7 @@ npm install
 npm run start:dev
 ```
 
-Mở http://localhost:4000 → thấy `Hello World!`.
+Mở http://localhost:4000/products → thấy danh sách món dạng JSON.
 
 ### 2. Frontend
 
@@ -52,7 +62,7 @@ Mở http://localhost:3000.
 ## Tiến độ (Product Backlog)
 
 - [x] Task 1 – Khởi tạo dự án và cấu trúc
-- [ ] Task 2 – API danh sách sản phẩm
+- [x] Task 2 – API danh sách sản phẩm
 - [ ] Task 3 – Trang Menu
 - [ ] Task 4 – Chi tiết và tùy chọn sản phẩm
 - [ ] Task 5 – Giỏ hàng
