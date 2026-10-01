@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useCartStore, formatMoney } from '@/store/cart';
 
 type Product = {
   id: number;
@@ -27,11 +28,6 @@ const TOPPINGS = [
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// Đổi 45000 thành "45.000đ"
-function formatMoney(value: number) {
-  return value.toLocaleString('vi-VN') + 'đ';
-}
-
 export default function ProductDetail() {
   // Lấy id trên đường link, ví dụ /products/2 thì id = "2"
   const params = useParams();
@@ -42,6 +38,9 @@ export default function ProductDetail() {
   const [error, setError] = useState('');
   const [size, setSize] = useState('S'); // size đang chọn
   const [toppings, setToppings] = useState<string[]>([]); // các topping đang chọn
+  const [added, setAdded] = useState(false); // vừa thêm vào giỏ chưa
+
+  const addItem = useCartStore((state) => state.addItem);
 
   // Gọi backend lấy thông tin 1 món
   useEffect(() => {
@@ -88,6 +87,19 @@ export default function ProductDetail() {
     }
 
     return total;
+  }
+
+  // Bấm "Thêm vào giỏ"
+  function handleAddToCart(p: Product) {
+    addItem({
+      productId: p.id,
+      name: p.name,
+      imageUrl: p.imageUrl,
+      size: size,
+      toppings: toppings,
+      unitPrice: calcPrice(p.price),
+    });
+    setAdded(true);
   }
 
   if (loading) {
@@ -145,10 +157,22 @@ export default function ProductDetail() {
         ))}
       </div>
 
-      {/* Nút thêm vào giỏ: sẽ hoạt động ở Task 5 */}
-      <button className="mt-8 w-full rounded-xl bg-amber-700 py-3 font-semibold text-white">
+      <button
+        onClick={() => handleAddToCart(product)}
+        className="mt-8 w-full rounded-xl bg-amber-700 py-3 font-semibold text-white"
+      >
         Thêm vào giỏ – {formatMoney(calcPrice(product.price))}
       </button>
+
+      {/* Báo cho khách biết đã thêm thành công */}
+      {added && (
+        <p className="mt-3 text-center text-green-700">
+          ✓ Đã thêm vào giỏ.{' '}
+          <Link href="/cart" className="underline">
+            Xem giỏ hàng
+          </Link>
+        </p>
+      )}
     </main>
   );
 }

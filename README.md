@@ -65,7 +65,7 @@ Mở http://localhost:3000.
 - [x] Task 2 – API danh sách sản phẩm
 - [x] Task 3 – Trang Menu
 - [x] Task 4 – Chi tiết và tùy chọn sản phẩm
-- [ ] Task 5 – Giỏ hàng
+- [x] Task 5 – Giỏ hàng
 - [ ] Task 6 – API tạo đơn hàng
 - [ ] Task 7 – Đăng ký / Đăng nhập (JWT)
 - [ ] Task 8 – Thanh toán không tiền mặt
