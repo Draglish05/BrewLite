@@ -1,0 +1,18 @@
+# Thư viện tải về (rất nặng, ai clone về tự chạy npm install)
+node_modules/
+
+# File build
+dist/
+.next/
+out/
+coverage/
+
+# Biến môi trường thật (chứa mật khẩu, KHÔNG đưa lên Git)
+.env
+.env.local
+
+# Linh tinh
+*.log
+.DS_Store
+.vscode/
+.idea/
