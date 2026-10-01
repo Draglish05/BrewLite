@@ -63,7 +63,7 @@ Mở http://localhost:3000.
 
 - [x] Task 1 – Khởi tạo dự án và cấu trúc
 - [x] Task 2 – API danh sách sản phẩm
-- [ ] Task 3 – Trang Menu
+- [x] Task 3 – Trang Menu
 - [ ] Task 4 – Chi tiết và tùy chọn sản phẩm
 - [ ] Task 5 – Giỏ hàng
 - [ ] Task 6 – API tạo đơn hàng
