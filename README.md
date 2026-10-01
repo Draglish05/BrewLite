@@ -59,6 +59,20 @@ npm run dev
 
 Mở http://localhost:3000.
 
+## API
+
+| Method | Endpoint | Chức năng |
+|---|---|---|
+| GET | `/products` | Danh sách món |
+| GET | `/products/:id` | Chi tiết 1 món |
+| POST | `/orders` | Tạo đơn từ giỏ hàng (trạng thái `PENDING`), trả mã đơn |
+
+Ví dụ body `POST /orders`:
+
+```json
+{ "items": [ { "productId": 3, "size": "L", "toppings": ["Kem"], "qty": 2 } ] }
+```
+
 ## Tiến độ (Product Backlog)
 
 - [x] Task 1 – Khởi tạo dự án và cấu trúc
@@ -66,7 +80,7 @@ Mở http://localhost:3000.
 - [x] Task 3 – Trang Menu
 - [x] Task 4 – Chi tiết và tùy chọn sản phẩm
 - [x] Task 5 – Giỏ hàng
-- [ ] Task 6 – API tạo đơn hàng
+- [x] Task 6 – API tạo đơn hàng
 - [ ] Task 7 – Đăng ký / Đăng nhập (JWT)
 - [ ] Task 8 – Thanh toán không tiền mặt
 - [ ] Task 9 – Xác nhận, lịch sử đơn & bàn giao

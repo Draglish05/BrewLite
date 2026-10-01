@@ -6,7 +6,7 @@ export type CartItem = {
   key: string; // mã riêng của dòng, ví dụ "3-L-Kem"
   productId: number;
   name: string;
-  imageUrl: string;
+  color: string; // màu nước để vẽ hình ly
   size: string;
   toppings: string[];
   unitPrice: number; // giá 1 ly (đã cộng size + topping)

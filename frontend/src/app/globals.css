@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #ffffff; /* nền trắng */
+  --foreground: #1f2937; /* chữ xám đậm */
 }
 
 @theme inline {
@@ -12,11 +12,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth; /* bấm loại đồ uống thì cuộn mượt tới đó */
 }
 
 body {
