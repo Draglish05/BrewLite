@@ -6,7 +6,7 @@ import { useCartStore, getCartCount } from '@/store/cart';
 
 export default function Header() {
   const items = useCartStore((state) => state.items);
-  const count = getCartCount(items);
+  const count = getCartCount(items); // tổng số ly
 
   // Khi trang mở xong: nạp lại giỏ hàng đã lưu trong trình duyệt
   useEffect(() => {
@@ -14,21 +14,34 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="border-b bg-white text-gray-900">
-      <div className="mx-auto flex max-w-5xl items-center justify-between p-4">
-        <Link href="/" className="text-xl font-bold">
+    <header className="bg-sky-100">
+      <div className="px-4 py-3">
+        <Link href="/" className="text-3xl font-bold text-sky-800">
           BrewLite ☕
         </Link>
 
-        <Link href="/cart" className="relative rounded-lg border px-3 py-2">
-          🛒 Giỏ hàng
-          {/* Badge số lượng: chỉ hiện khi giỏ có món */}
-          {count > 0 && (
-            <span className="absolute -right-2 -top-2 rounded-full bg-red-600 px-2 text-sm text-white">
-              {count}
-            </span>
-          )}
-        </Link>
+        {/* 2 nút nằm bên trái, dưới chữ BrewLite, có khung bo góc */}
+        <nav className="mt-3 flex gap-3">
+          <Link
+            href="/"
+            className="rounded-xl border-2 border-sky-400 bg-white px-5 py-2 text-lg font-semibold text-sky-900 hover:bg-sky-50"
+          >
+            📋 Xem menu
+          </Link>
+
+          <Link
+            href="/cart"
+            className="relative rounded-xl border-2 border-sky-400 bg-white px-5 py-2 text-lg font-semibold text-sky-900 hover:bg-sky-50"
+          >
+            🛒 Giỏ hàng
+            {/* Badge: tổng số ly, chỉ hiện khi giỏ có món */}
+            {count > 0 && (
+              <span className="absolute -right-2 -top-2 rounded-full bg-red-600 px-2 text-sm text-white">
+                {count}
+              </span>
+            )}
+          </Link>
+        </nav>
       </div>
     </header>
   );

@@ -2,18 +2,27 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('products')
 export class Product {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    name: string;
+  @Column()
+  name: string;
 
-    @Column('int')
-    price: number;
+  @Column('int')
+  price: number;
 
-    @Column()
-    imageUrl: string;
+  // Giữ đúng theo đề (Product có imageUrl). Hiện frontend tự vẽ hình ly nên để trống.
+  @Column({ default: '' })
+  imageUrl: string;
 
-    @Column('int')
-    stock: number;
+  @Column('int')
+  stock: number;
+
+  // Loại đồ uống: Cà phê, Trà sữa, Trà, Matcha, Cacao
+  @Column({ default: 'Cà phê' })
+  category: string;
+
+  // Màu nước trong hình ly (frontend dùng để vẽ)
+  @Column({ default: '#6f4e37' })
+  color: string;
 }

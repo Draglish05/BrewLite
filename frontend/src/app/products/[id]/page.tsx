@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore, formatMoney } from '@/store/cart';
+import CupIcon from '@/components/CupIcon';
 
 type Product = {
   id: number;
@@ -11,6 +12,8 @@ type Product = {
   price: number;
   imageUrl: string;
   stock: number;
+  category: string;
+  color: string;
 };
 
 // Size và số tiền cộng thêm
@@ -21,9 +24,14 @@ const SIZES = [
 ];
 
 // Topping và giá của từng loại
+// (phải giống bảng giá bên backend: backend/src/orders/pricing.ts)
 const TOPPINGS = [
   { name: 'Trân châu', price: 5000 },
+  { name: 'Thạch đào', price: 6000 },
+  { name: 'Pudding trứng', price: 7000 },
   { name: 'Kem', price: 7000 },
+  { name: 'Kem muối', price: 8000 },
+  { name: 'Kem cheese', price: 10000 },
 ];
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -94,7 +102,7 @@ export default function ProductDetail() {
     addItem({
       productId: p.id,
       name: p.name,
-      imageUrl: p.imageUrl,
+      color: p.color,
       size: size,
       toppings: toppings,
       unitPrice: calcPrice(p.price),
@@ -110,16 +118,18 @@ export default function ProductDetail() {
     return (
       <main className="p-8">
         <p className="text-red-600">{error}</p>
-        <Link href="/" className="text-amber-700 underline">← Về Menu</Link>
+        <Link href="/" className="text-sky-700 underline">← Về Menu</Link>
       </main>
     );
   }
 
   return (
     <main className="mx-auto max-w-md p-8">
-      <Link href="/" className="text-amber-700">← Menu</Link>
+      <Link href="/" className="text-sky-700 underline">← Menu</Link>
 
-      <img src={product.imageUrl} alt={product.name} className="mt-4 h-56 w-full rounded-xl object-cover" />
+      <div className="mt-4 flex h-56 items-center justify-center rounded-xl bg-sky-50">
+        <CupIcon color={product.color} className="h-48" />
+      </div>
       <h1 className="mt-4 text-2xl font-bold">{product.name}</h1>
       <p className="text-gray-500">Giá: {formatMoney(product.price)}</p>
 
@@ -132,7 +142,7 @@ export default function ProductDetail() {
             onClick={() => setSize(s.name)}
             className={
               size === s.name
-                ? 'flex-1 rounded-lg border-2 border-amber-700 bg-amber-700 py-2 text-white'
+                ? 'flex-1 rounded-lg border-2 border-sky-600 bg-sky-600 py-2 text-white'
                 : 'flex-1 rounded-lg border-2 border-gray-300 py-2'
             }
           >
@@ -144,7 +154,7 @@ export default function ProductDetail() {
 
       {/* Chọn topping */}
       <h2 className="mt-6 font-semibold">Topping</h2>
-      <div className="mt-2 flex flex-col gap-2">
+      <div className="mt-2 grid grid-cols-2 gap-2">
         {TOPPINGS.map((t) => (
           <label key={t.name} className="flex items-center gap-2">
             <input
@@ -159,7 +169,7 @@ export default function ProductDetail() {
 
       <button
         onClick={() => handleAddToCart(product)}
-        className="mt-8 w-full rounded-xl bg-amber-700 py-3 font-semibold text-white"
+        className="mt-8 w-full rounded-xl bg-sky-600 py-3 font-semibold text-white hover:bg-sky-700"
       >
         Thêm vào giỏ – {formatMoney(calcPrice(product.price))}
       </button>
