@@ -10,6 +10,11 @@ async function bootstrap() {
   // whitelist: bỏ các trường lạ; forbidNonWhitelisted: có trường lạ thì báo lỗi 400
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
 
-  await app.listen(process.env.PORT ?? 4000);
+  // Cổng chạy: lấy trong file .env, nếu không có thì dùng 4000
+  let port = 4000;
+  if (process.env.PORT) {
+    port = Number(process.env.PORT);
+  }
+  await app.listen(port);
 }
 bootstrap();

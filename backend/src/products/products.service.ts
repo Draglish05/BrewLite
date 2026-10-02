@@ -55,7 +55,7 @@ export class ProductsService implements OnModuleInit {
     return this.productRepo.find({ order: { id: 'ASC' } });
   }
 
-  // SELECT * FROM products WHERE id = ?
+  // SELECT * FROM products WHERE id = (id cần tìm)
   async findOne(id: number): Promise<Product> {
     const product = await this.productRepo.findOneBy({ id });
     if (!product) {

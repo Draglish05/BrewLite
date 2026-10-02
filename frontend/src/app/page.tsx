@@ -122,20 +122,20 @@ export default function Home() {
 
         <p className="px-4 pb-1 text-xs font-semibold uppercase text-gray-400">Loại đồ uống</p>
         <nav className="flex overflow-x-auto md:flex-col">
-          {CATEGORIES.map((cat) => (
-            <a
-              key={cat.id}
-              href={'#' + cat.id}
-              onClick={() => setActiveCat(cat.id)}
-              className={
-                activeCat === cat.id
-                  ? 'whitespace-nowrap border-l-4 border-sky-600 bg-sky-100 px-4 py-3 font-semibold text-sky-800'
-                  : 'whitespace-nowrap border-l-4 border-transparent px-4 py-3 text-gray-700 hover:bg-gray-50'
-              }
-            >
-              {cat.name}
-            </a>
-          ))}
+          {CATEGORIES.map((cat) => {
+            // Kiểu chữ bình thường
+            let style = 'whitespace-nowrap border-l-4 border-transparent px-4 py-3 text-gray-700 hover:bg-gray-50';
+            // Loại đang chọn thì tô xanh
+            if (activeCat === cat.id) {
+              style = 'whitespace-nowrap border-l-4 border-sky-600 bg-sky-100 px-4 py-3 font-semibold text-sky-800';
+            }
+
+            return (
+              <a key={cat.id} href={'#' + cat.id} onClick={() => setActiveCat(cat.id)} className={style}>
+                {cat.name}
+              </a>
+            );
+          })}
         </nav>
       </aside>
 

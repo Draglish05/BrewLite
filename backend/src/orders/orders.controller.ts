@@ -1,4 +1,5 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrdersService } from './orders.service';
 
@@ -6,10 +7,12 @@ import { OrdersService } from './orders.service';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  // POST /orders – tạo đơn từ giỏ hàng
+  // POST /orders – tạo đơn từ giỏ hàng, cần đăng nhập (JwtAuthGuard)
   // @Body(): lấy dữ liệu JSON khách gửi lên, ValidationPipe tự kiểm tra theo CreateOrderDto
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateOrderDto) {
-    return this.ordersService.create(dto, null); // Task 7 sẽ thay null bằng id người đăng nhập
+  create(@Body() dto: CreateOrderDto, @Req() req: any) {
+    // req.user do guard gắn vào sau khi kiểm tra token
+    return this.ordersService.create(dto, req.user.id);
   }
 }
