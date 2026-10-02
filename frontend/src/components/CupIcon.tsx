@@ -2,11 +2,11 @@
 // color: màu nước trong ly
 
 type CupIconProps = {
-  color?: string;
-  className?: string;
+  color: string; // màu nước, ví dụ '#8fb36a'
+  className: string; // class Tailwind, ví dụ 'h-20'
 };
 
-export default function CupIcon({ color = '#6f4e37', className = '' }: CupIconProps) {
+export default function CupIcon({ color, className }: CupIconProps) {
   return (
     <svg viewBox="0 0 100 120" className={className} aria-hidden="true">
       {/* Ống hút: cắm xiên vào ly */}

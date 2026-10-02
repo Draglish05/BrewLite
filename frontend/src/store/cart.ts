@@ -23,6 +23,20 @@ type CartState = {
   clear: () => void;
 };
 
+// Tạo danh sách mới, trong đó dòng có mã "key" được cộng thêm "amount" ly
+// (amount = 1 là tăng, amount = -1 là giảm)
+function changeQty(items: CartItem[], key: string, amount: number) {
+  const newItems: CartItem[] = [];
+  for (const i of items) {
+    if (i.key === key) {
+      newItems.push({ ...i, qty: i.qty + amount });
+    } else {
+      newItems.push(i);
+    }
+  }
+  return newItems;
+}
+
 export const useCartStore = create<CartState>()(
   // persist: lưu giỏ vào trình duyệt, tải lại trang không bị mất
   persist(
@@ -36,7 +50,7 @@ export const useCartStore = create<CartState>()(
         const found = items.find((i) => i.key === key);
 
         if (found) {
-          set({ items: items.map((i) => (i.key === key ? { ...i, qty: i.qty + 1 } : i)) });
+          set({ items: changeQty(items, key, 1) });
         } else {
           set({ items: [...items, { ...item, key: key, qty: 1 }] });
         }
@@ -44,7 +58,7 @@ export const useCartStore = create<CartState>()(
 
       // Tăng số lượng 1 dòng
       increase: (key) => {
-        set({ items: get().items.map((i) => (i.key === key ? { ...i, qty: i.qty + 1 } : i)) });
+        set({ items: changeQty(get().items, key, 1) });
       },
 
       // Giảm số lượng; còn 1 mà bấm giảm thì xóa luôn dòng đó
@@ -56,7 +70,7 @@ export const useCartStore = create<CartState>()(
         if (found.qty <= 1) {
           set({ items: items.filter((i) => i.key !== key) });
         } else {
-          set({ items: items.map((i) => (i.key === key ? { ...i, qty: i.qty - 1 } : i)) });
+          set({ items: changeQty(items, key, -1) });
         }
       },
 

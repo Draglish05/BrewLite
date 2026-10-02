@@ -65,7 +65,11 @@ Mở http://localhost:3000.
 |---|---|---|
 | GET | `/products` | Danh sách món |
 | GET | `/products/:id` | Chi tiết 1 món |
-| POST | `/orders` | Tạo đơn từ giỏ hàng (trạng thái `PENDING`), trả mã đơn |
+| POST | `/auth/register` | Đăng ký (email, password tối thiểu 6 ký tự), mật khẩu được băm bằng bcrypt |
+| POST | `/auth/login` | Đăng nhập, trả `accessToken` (JWT) |
+| POST | `/orders` | Tạo đơn từ giỏ hàng (trạng thái `PENDING`), trả mã đơn. **Cần đăng nhập** |
+
+`POST /orders` cần header `Authorization: Bearer <accessToken>` lấy từ `/auth/login`.
 
 Ví dụ body `POST /orders`:
 
@@ -81,7 +85,7 @@ Ví dụ body `POST /orders`:
 - [x] Task 4 – Chi tiết và tùy chọn sản phẩm
 - [x] Task 5 – Giỏ hàng
 - [x] Task 6 – API tạo đơn hàng
-- [ ] Task 7 – Đăng ký / Đăng nhập (JWT)
+- [x] Task 7 – Đăng ký / Đăng nhập (JWT)
 - [ ] Task 8 – Thanh toán không tiền mặt
 - [ ] Task 9 – Xác nhận, lịch sử đơn & bàn giao
 - [ ] Task 10 – Nghiệp vụ backend

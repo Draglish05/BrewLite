@@ -136,20 +136,21 @@ export default function ProductDetail() {
       {/* Chọn size */}
       <h2 className="mt-6 font-semibold">Size</h2>
       <div className="mt-2 flex gap-2">
-        {SIZES.map((s) => (
-          <button
-            key={s.name}
-            onClick={() => setSize(s.name)}
-            className={
-              size === s.name
-                ? 'flex-1 rounded-lg border-2 border-sky-600 bg-sky-600 py-2 text-white'
-                : 'flex-1 rounded-lg border-2 border-gray-300 py-2'
-            }
-          >
-            {s.name}
-            {s.extra > 0 && <span className="block text-xs">+{formatMoney(s.extra)}</span>}
-          </button>
-        ))}
+        {SIZES.map((s) => {
+          // Nút bình thường
+          let style = 'flex-1 rounded-lg border-2 border-gray-300 py-2';
+          // Size đang chọn thì tô xanh
+          if (size === s.name) {
+            style = 'flex-1 rounded-lg border-2 border-sky-600 bg-sky-600 py-2 text-white';
+          }
+
+          return (
+            <button key={s.name} onClick={() => setSize(s.name)} className={style}>
+              {s.name}
+              {s.extra > 0 && <span className="block text-xs">+{formatMoney(s.extra)}</span>}
+            </button>
+          );
+        })}
       </div>
 
       {/* Chọn topping */}
