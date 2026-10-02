@@ -83,10 +83,13 @@ export default function CartPage() {
         + Thêm món khác
       </Link>
 
-      {/* Nút thanh toán hiện tổng tiền (theo US-05). Màn thanh toán làm ở Task 8 */}
-      <button className="mt-6 w-full rounded-xl bg-sky-600 py-3 font-semibold text-white hover:bg-sky-700">
+      {/* Nút thanh toán hiện tổng tiền (theo US-05), bấm vào để sang màn thanh toán */}
+      <Link
+        href="/checkout"
+        className="mt-6 block w-full rounded-xl bg-sky-600 py-3 text-center font-semibold text-white hover:bg-sky-700"
+      >
         Thanh toán – {formatMoney(total)}
-      </button>
+      </Link>
     </main>
   );
 }

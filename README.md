@@ -67,6 +67,7 @@ Mở http://localhost:3000.
 | GET | `/products/:id` | Chi tiết 1 món |
 | POST | `/auth/register` | Đăng ký (email, password tối thiểu 6 ký tự), mật khẩu được băm bằng bcrypt |
 | POST | `/auth/login` | Đăng nhập, trả `accessToken` (JWT) |
+| POST | `/payments` | Thanh toán đơn bằng Ví (`WALLET`) hoặc Thẻ (`CARD`): thành công `PAID`, lỗi `PAYMENT_FAILED`. **Cần đăng nhập** |
 | POST | `/orders` | Tạo đơn từ giỏ hàng (trạng thái `PENDING`), trả mã đơn. **Cần đăng nhập** |
 
 `POST /orders` cần header `Authorization: Bearer <accessToken>` lấy từ `/auth/login`.
