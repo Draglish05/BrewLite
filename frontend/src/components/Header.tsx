@@ -1,17 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
 import { useCartStore, getCartCount } from '@/store/cart';
+import { useAuthStore } from '@/store/auth';
 
 export default function Header() {
   const items = useCartStore((state) => state.items);
   const count = getCartCount(items); // tổng số ly
-
-  // Khi trang mở xong: nạp lại giỏ hàng đã lưu trong trình duyệt
-  useEffect(() => {
-    useCartStore.persist.rehydrate();
-  }, []);
+  const email = useAuthStore((state) => state.email);
+  const logout = useAuthStore((state) => state.logout);
 
   return (
     <header className="bg-sky-100">
@@ -41,6 +38,14 @@ export default function Header() {
               </span>
             )}
           </Link>
+
+          {/* Bên phải: email và nút đăng xuất */}
+          <div className="ml-auto flex items-center gap-3">
+            <span className="text-sky-900">👤 {email}</span>
+            <button onClick={logout} className="font-semibold text-red-600 hover:underline">
+              Đăng xuất
+            </button>
+          </div>
         </nav>
       </div>
     </header>
