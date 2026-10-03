@@ -39,6 +39,13 @@ export default function Header() {
             )}
           </Link>
 
+          <Link
+            href="/orders"
+            className="rounded-xl border-2 border-sky-400 bg-white px-5 py-2 text-lg font-semibold text-sky-900 hover:bg-sky-50"
+          >
+            🧾 Đơn của tôi
+          </Link>
+
           {/* Bên phải: email và nút đăng xuất */}
           <div className="ml-auto flex items-center gap-3">
             <span className="text-sky-900">👤 {email}</span>
