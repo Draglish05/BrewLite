@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from '../products/product.entity';
@@ -62,5 +67,29 @@ export class OrdersService {
       status: saved.status,
       total: saved.total,
     };
+  }
+
+  // Lịch sử đơn của 1 người, đơn mới nhất ở trên cùng
+  findMine(userId: number) {
+    return this.orderRepo.find({
+      where: { userId: userId },
+      relations: { items: true },
+      order: { id: 'DESC' },
+    });
+  }
+
+  // Chi tiết 1 đơn (màn hình xác nhận), chỉ chủ đơn mới xem được
+  async findOne(id: number, userId: number) {
+    const order = await this.orderRepo.findOne({
+      where: { id: id },
+      relations: { items: true },
+    });
+    if (!order) {
+      throw new NotFoundException(`Không tìm thấy đơn #${id}`);
+    }
+    if (order.userId !== userId) {
+      throw new ForbiddenException('Đơn này không phải của bạn');
+    }
+    return order;
   }
 }

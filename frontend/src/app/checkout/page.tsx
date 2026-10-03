@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { API_URL, getErrorMessage } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
@@ -15,6 +16,7 @@ type PaymentResult = {
 };
 
 export default function CheckoutPage() {
+  const router = useRouter();
   const token = useAuthStore((state) => state.token);
   const logout = useAuthStore((state) => state.logout);
   const items = useCartStore((state) => state.items);
@@ -92,9 +94,10 @@ export default function CheckoutPage() {
       }
 
       if (payData.status === 'PAID') {
-        // Thành công: xóa giỏ và hiện màn hình xác nhận
+        // Thành công: xóa giỏ và chuyển sang màn hình xác nhận
         clear();
         setResult(payData);
+        router.push('/orders/' + payData.orderId);
       } else {
         // Thất bại: GIỮ NGUYÊN giỏ hàng, cho khách thử lại
         setError(payData.message);
@@ -106,34 +109,9 @@ export default function CheckoutPage() {
     }
   }
 
-  // Thanh toán thành công
+  // Thanh toán thành công: đang chuyển sang màn hình xác nhận
   if (result) {
-    let methodName = 'Ví';
-    if (result.method === 'CARD') {
-      methodName = 'Thẻ';
-    }
-
-    return (
-      <main className="mx-auto max-w-md p-8 text-center">
-        <p className="text-5xl">✅</p>
-        <h1 className="mt-2 text-2xl font-bold">Thanh toán thành công</h1>
-        <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 text-left">
-          <p>
-            Mã đơn: <b>#{result.orderId}</b>
-          </p>
-          <p>
-            Trạng thái: <b>{result.status}</b>
-          </p>
-          <p>Phương thức: {methodName}</p>
-          <p>
-            Số tiền: <b>{formatMoney(result.amount)}</b>
-          </p>
-        </div>
-        <Link href="/" className="mt-6 inline-block text-sky-700 underline">
-          ← Về menu
-        </Link>
-      </main>
-    );
+    return <main className="mx-auto max-w-md p-8 text-center">Đang chuyển đến màn hình xác nhận...</main>;
   }
 
   // Chưa đăng nhập

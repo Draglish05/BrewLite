@@ -69,6 +69,8 @@ Mở http://localhost:3000.
 | POST | `/auth/login` | Đăng nhập, trả `accessToken` (JWT) |
 | POST | `/payments` | Thanh toán đơn bằng Ví (`WALLET`) hoặc Thẻ (`CARD`): thành công `PAID`, lỗi `PAYMENT_FAILED`. **Cần đăng nhập** |
 | POST | `/orders` | Tạo đơn từ giỏ hàng (trạng thái `PENDING`), trả mã đơn. **Cần đăng nhập** |
+| GET | `/orders/me` | Lịch sử đơn của tôi, đơn mới nhất ở trên. **Cần đăng nhập** |
+| GET | `/orders/:id` | Chi tiết 1 đơn (mã đơn, trạng thái, các món). Chỉ chủ đơn xem được. **Cần đăng nhập** |
 
 `POST /orders` cần header `Authorization: Bearer <accessToken>` lấy từ `/auth/login`.
 
