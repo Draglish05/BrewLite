@@ -1,4 +1,5 @@
 services:
+  # Cơ sở dữ liệu PostgreSQL
   db:
     image: postgres:16
     container_name: brewlite-db
@@ -7,9 +8,45 @@ services:
       POSTGRES_PASSWORD: brewlite
       POSTGRES_DB: brewlite
     ports:
-      - "5433:5432"
+      - "5433:5432" # cổng 5433 trên máy để tránh trùng PostgreSQL cài sẵn
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U brewlite -d brewlite"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  # Backend NestJS
+  backend:
+    build: ./backend
+    container_name: brewlite-backend
+    environment:
+      PORT: 4000
+      DB_HOST: db # trong Docker, backend gọi database bằng tên dịch vụ "db"
+      DB_PORT: 5432
+      DB_USER: brewlite
+      DB_PASSWORD: brewlite
+      DB_NAME: brewlite
+      JWT_SECRET: brewlite-dev-secret
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Frontend Next.js
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Địa chỉ backend mà TRÌNH DUYỆT gọi tới
+        NEXT_PUBLIC_API_URL: http://localhost:4000
+    container_name: brewlite-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   pgdata:
