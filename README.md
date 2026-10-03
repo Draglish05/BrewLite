@@ -15,8 +15,9 @@
 
 ```
 BrewLite/
-├─ backend/    # NestJS – REST API (cổng 4000)
-└─ frontend/   # Next.js – giao diện (cổng 3000)
+├─ backend/              # NestJS – REST API (cổng 4000)
+├─ frontend/             # Next.js – giao diện (cổng 3000)
+└─ docker-compose.yml    # chạy cả 3 phần: database, backend, frontend
 ```
 
 ## Yêu cầu cài đặt
@@ -25,17 +26,33 @@ BrewLite/
 - Git
 - Docker Desktop
 
-## Chạy dự án (môi trường phát triển)
+## Cách 1: Chạy toàn bộ bằng Docker (1 lệnh)
+
+Mở Docker Desktop, đợi khởi động xong, rồi tại thư mục gốc:
+
+```bash
+docker compose up --build
+```
+
+Lần đầu build mất vài phút. Khi terminal báo backend đã khởi động, mở:
+
+- Giao diện: http://localhost:3000
+- API: http://localhost:4000/products
+
+Dừng: nhấn `Ctrl+C`, rồi `docker compose down` (dữ liệu database vẫn được giữ).
+
+## Cách 2: Chạy từng phần (môi trường phát triển)
+
 
 ### 0. Database (PostgreSQL bằng Docker)
 
-Mở Docker Desktop, rồi tại thư mục gốc:
+Mở Docker Desktop, rồi tại thư mục gốc chỉ bật database:
 
 ```bash
-docker compose up -d
+docker compose up -d db
 ```
 
-PostgreSQL chạy ở cổng **5433** (user / mật khẩu / database: `brewlite`). Khi backend khởi động lần đầu, bảng `products` được tạo tự động và thêm 4 món mẫu.
+PostgreSQL chạy ở cổng **5433** (user / mật khẩu / database: `brewlite`). Khi backend khởi động lần đầu, các bảng được tạo tự động và thêm 14 món mẫu.
 
 ### 1. Backend
 
@@ -89,6 +106,17 @@ Ví dụ body `POST /orders`:
 - [x] Task 5 – Giỏ hàng
 - [x] Task 6 – API tạo đơn hàng
 - [x] Task 7 – Đăng ký / Đăng nhập (JWT)
-- [ ] Task 8 – Thanh toán không tiền mặt
-- [ ] Task 9 – Xác nhận, lịch sử đơn & bàn giao
+- [x] Task 8 – Thanh toán không tiền mặt
+- [x] Task 9 – Xác nhận, lịch sử đơn & bàn giao
 - [ ] Task 10 – Nghiệp vụ backend
+
+## Kịch bản demo (từ đầu đến cuối)
+
+1. Mở http://localhost:3000, bấm **đăng ký ngay**, tạo tài khoản (mật khẩu từ 6 ký tự). Đăng ký xong tự đăng nhập.
+2. Ở menu, bấm một món, chọn size và topping (giá thay đổi theo lựa chọn), bấm **Thêm vào giỏ**.
+3. Vào **Giỏ hàng**: tăng, giảm, xóa món; xem tổng số lượng và tổng tiền. Bấm **Thanh toán**.
+4. Chọn **Ví** hoặc **Thẻ**:
+   - Tick "Giả lập thanh toán lỗi" rồi xác nhận: báo lỗi, đơn thành `PAYMENT_FAILED`, giỏ hàng vẫn còn.
+   - Bỏ tick rồi xác nhận lại: đơn thành `PAID`.
+5. Màn hình **xác nhận** hiện mã đơn, trạng thái và các món đã đặt.
+6. Bấm **Đơn của tôi** để xem lịch sử các đơn đã đặt.
