@@ -13,25 +13,70 @@ export type CartItem = {
   qty: number; // số lượng
 };
 
+// Thông tin món khi bấm "Thêm vào giỏ" (chưa có key và qty, giỏ sẽ tự tạo)
+export type NewCartItem = {
+  productId: number;
+  name: string;
+  color: string;
+  size: string;
+  toppings: string[];
+  unitPrice: number;
+};
+
 // Những gì cái "bảng ghi nhớ chung" có
 type CartState = {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, 'key' | 'qty'>) => void;
+  isOpen: boolean; // khung giỏ hàng bên phải đang mở hay đóng
+  openCart: () => void;
+  closeCart: () => void;
+  addItem: (item: NewCartItem) => void;
   increase: (key: string) => void;
   decrease: (key: string) => void;
   removeItem: (key: string) => void;
   clear: () => void;
 };
 
+// Tìm dòng có mã "key" trong giỏ, không có thì trả về null
+function findItem(items: CartItem[], key: string) {
+  for (const item of items) {
+    if (item.key === key) {
+      return item;
+    }
+  }
+  return null;
+}
+
+// Tạo danh sách mới, bỏ dòng có mã "key"
+function removeByKey(items: CartItem[], key: string) {
+  const newItems: CartItem[] = [];
+  for (const item of items) {
+    if (item.key !== key) {
+      newItems.push(item);
+    }
+  }
+  return newItems;
+}
+
 // Tạo danh sách mới, trong đó dòng có mã "key" được cộng thêm "amount" ly
 // (amount = 1 là tăng, amount = -1 là giảm)
 function changeQty(items: CartItem[], key: string, amount: number) {
   const newItems: CartItem[] = [];
-  for (const i of items) {
-    if (i.key === key) {
-      newItems.push({ ...i, qty: i.qty + amount });
+  for (const item of items) {
+    if (item.key === key) {
+      // Tạo dòng mới giống hệt dòng cũ, chỉ khác số lượng
+      const updatedItem: CartItem = {
+        key: item.key,
+        productId: item.productId,
+        name: item.name,
+        color: item.color,
+        size: item.size,
+        toppings: item.toppings,
+        unitPrice: item.unitPrice,
+        qty: item.qty + amount,
+      };
+      newItems.push(updatedItem);
     } else {
-      newItems.push(i);
+      newItems.push(item);
     }
   }
   return newItems;
@@ -42,21 +87,47 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      isOpen: false,
+
+      // Mở / đóng khung giỏ hàng trượt ra từ bên phải
+      openCart: () => {
+        set({ isOpen: true });
+      },
+      closeCart: () => {
+        set({ isOpen: false });
+      },
 
       // Thêm món: nếu đã có đúng món + size + topping đó thì chỉ tăng số lượng
       addItem: (item) => {
         const key = item.productId + '-' + item.size + '-' + item.toppings.join(',');
         const items = get().items;
-        const found = items.find((i) => i.key === key);
+        const found = findItem(items, key);
 
         if (found) {
           set({ items: changeQty(items, key, 1) });
         } else {
-          set({ items: [...items, { ...item, key: key, qty: 1 }] });
+          const newItem: CartItem = {
+            key: key,
+            productId: item.productId,
+            name: item.name,
+            color: item.color,
+            size: item.size,
+            toppings: item.toppings,
+            unitPrice: item.unitPrice,
+            qty: 1,
+          };
+
+          // Chép các dòng cũ sang danh sách mới rồi thêm dòng mới vào cuối
+          const newItems: CartItem[] = [];
+          for (const oldItem of items) {
+            newItems.push(oldItem);
+          }
+          newItems.push(newItem);
+
+          set({ items: newItems });
         }
       },
 
-      // Tăng số lượng 1 dòng
       increase: (key) => {
         set({ items: changeQty(get().items, key, 1) });
       },
@@ -64,19 +135,18 @@ export const useCartStore = create<CartState>()(
       // Giảm số lượng; còn 1 mà bấm giảm thì xóa luôn dòng đó
       decrease: (key) => {
         const items = get().items;
-        const found = items.find((i) => i.key === key);
+        const found = findItem(items, key);
         if (!found) return;
 
         if (found.qty <= 1) {
-          set({ items: items.filter((i) => i.key !== key) });
+          set({ items: removeByKey(items, key) });
         } else {
           set({ items: changeQty(items, key, -1) });
         }
       },
 
-      // Xóa 1 dòng
       removeItem: (key) => {
-        set({ items: get().items.filter((i) => i.key !== key) });
+        set({ items: removeByKey(get().items, key) });
       },
 
       // Xóa hết giỏ (dùng sau khi thanh toán thành công)
@@ -87,6 +157,10 @@ export const useCartStore = create<CartState>()(
     {
       name: 'brewlite-cart', // tên chỗ lưu trong trình duyệt
       skipHydration: true, // Header sẽ tự nạp lại giỏ sau khi trang mở (tránh lỗi Next.js)
+      // Chỉ lưu danh sách món, không lưu "giỏ đang mở" (tải lại trang thì giỏ luôn đóng)
+      partialize: (state) => {
+        return { items: state.items };
+      },
     },
   ),
 );
@@ -94,8 +168,8 @@ export const useCartStore = create<CartState>()(
 // Tổng tiền cả giỏ
 export function getCartTotal(items: CartItem[]) {
   let total = 0;
-  for (const i of items) {
-    total = total + i.unitPrice * i.qty;
+  for (const item of items) {
+    total = total + item.unitPrice * item.qty;
   }
   return total;
 }
@@ -103,8 +177,8 @@ export function getCartTotal(items: CartItem[]) {
 // Tổng số ly trong giỏ (để hiện trên badge)
 export function getCartCount(items: CartItem[]) {
   let count = 0;
-  for (const i of items) {
-    count = count + i.qty;
+  for (const item of items) {
+    count = count + item.qty;
   }
   return count;
 }

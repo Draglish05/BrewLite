@@ -30,7 +30,7 @@ export default function OrderConfirmationPage() {
           return;
         }
         setOrder(data);
-      } catch (err) {
+      } catch {
         setError('Không kết nối được máy chủ');
       } finally {
         setLoading(false);
@@ -40,60 +40,103 @@ export default function OrderConfirmationPage() {
   }, [id, token]);
 
   if (loading) {
-    return <main className="mx-auto max-w-md p-8">Đang tải đơn hàng...</main>;
+    return <main className="mx-auto w-full max-w-md px-4 pt-16 text-center text-mocha">Đang tải đơn hàng...</main>;
   }
 
   if (error !== '' || order === null) {
     return (
-      <main className="mx-auto max-w-md p-8">
-        <p className="text-red-600">{error}</p>
-        <Link href="/" className="mt-4 inline-block text-sky-700 underline">
+      <main className="mx-auto w-full max-w-md px-4 pt-10">
+        <p className="rounded-xl bg-red-50 p-4 text-red-700">{error}</p>
+        <Link href="/" className="mt-4 inline-block text-sm font-medium text-mocha hover:text-espresso">
           ← Về menu
         </Link>
       </main>
     );
   }
 
+  // Tiêu đề theo trạng thái đơn (mở từ lịch sử có thể là đơn chưa thanh toán / lỗi / đã hủy)
+  let icon = '✓';
+  let iconStyle = 'bg-emerald-100 text-emerald-700';
+  let title = 'Đặt hàng thành công';
+  let note = 'Mời bạn tới quầy lấy nước';
+  if (order.status === 'PENDING') {
+    icon = '…';
+    iconStyle = 'bg-amber-100 text-amber-700';
+    title = 'Đơn đang chờ thanh toán';
+    note = '';
+  } else if (order.status === 'PAYMENT_FAILED') {
+    icon = '!';
+    iconStyle = 'bg-red-100 text-red-700';
+    title = 'Thanh toán chưa thành công';
+    note = '';
+  } else if (order.status === 'CANCELLED') {
+    icon = '✕';
+    iconStyle = 'bg-stone-200 text-stone-600';
+    title = 'Đơn đã hủy';
+    note = '';
+  } else if (order.status === 'COMPLETED') {
+    note = 'Bạn đã nhận đồ uống. Cảm ơn bạn!';
+  }
+
+  // Có lời nhắn thì hiện dòng nhắn
+  let noteBox = null;
+  if (note !== '') {
+    noteBox = <p className="mt-3 font-medium text-caramel">{note}</p>;
+  }
+
   return (
-    <main className="mx-auto max-w-md p-8">
-      <div className="text-center">
-        <p className="text-5xl">✅</p>
-        <h1 className="mt-2 text-2xl font-bold">Đặt hàng thành công</h1>
-        <p className="mt-1 text-3xl font-extrabold text-sky-800">Mã đơn #{order.id}</p>
-        <span className={'mt-2 inline-block rounded-full px-3 py-1 text-sm font-semibold ' + getStatusStyle(order.status)}>
+    <main className="mx-auto w-full max-w-md px-4 pb-10 pt-8">
+      <div className="rounded-3xl border border-line bg-card px-6 py-8 text-center">
+        <div className={'mx-auto flex h-16 w-16 items-center justify-center rounded-full text-3xl font-bold ' + iconStyle}>
+          {icon}
+        </div>
+        <h1 className="mt-4 font-serif text-2xl font-semibold">{title}</h1>
+
+        <p className="mt-4 text-sm text-mocha">Mã đơn</p>
+        <p className="font-serif text-4xl font-semibold">#{order.id}</p>
+        <span className={'mt-3 inline-block rounded-full px-3 py-1 text-sm font-semibold ' + getStatusStyle(order.status)}>
           {getStatusLabel(order.status)}
         </span>
-        <p className="mt-2 text-sm text-gray-500">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
-      </div>
+        <p className="mt-2 text-xs text-mocha">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
+        {noteBox}
 
-      <div className="mt-6 rounded-xl border border-gray-200 bg-white p-4">
-        {order.items.map((item) => (
-          <div key={item.id} className="py-1 text-sm">
-            <div className="flex justify-between">
-              <span>
-                {item.qty} x {item.productName} ({item.size})
-              </span>
-              <span>{formatMoney(item.lineTotal)}</span>
-            </div>
-            {item.toppings && item.toppings.length > 0 && (
-              <p className="text-xs text-gray-500">Topping: {item.toppings.join(', ')}</p>
-            )}
+        {/* Các món đã đặt */}
+        <div className="mt-6 border-t border-dashed border-line pt-4 text-left">
+          {order.items.map((item) => {
+            // Món có topping thì thêm 1 dòng ghi topping
+            let toppingLine = null;
+            if (item.toppings && item.toppings.length > 0) {
+              toppingLine = <p className="text-xs text-mocha">+ {item.toppings.join(', ')}</p>;
+            }
+
+            return (
+              <div key={item.id} className="py-1 text-sm">
+                <div className="flex justify-between">
+                  <span>
+                    {item.qty} × {item.productName} <span className="text-mocha">({item.size})</span>
+                  </span>
+                  <span>{formatMoney(item.lineTotal)}</span>
+                </div>
+                {toppingLine}
+              </div>
+            );
+          })}
+          <div className="mt-2 flex justify-between border-t border-dashed border-line pt-2 text-lg font-semibold">
+            <span>Tổng</span>
+            <span>{formatMoney(order.total)}</span>
           </div>
-        ))}
-        <div className="mt-2 flex justify-between border-t border-gray-300 pt-2 text-lg font-bold">
-          <span>Tổng:</span>
-          <span>{formatMoney(order.total)}</span>
         </div>
       </div>
 
-      <div className="mt-6 flex justify-center gap-6">
-        <Link href="/" className="text-sky-700 underline">
-          ← Về menu
-        </Link>
-        <Link href="/orders" className="text-sky-700 underline">
-          Đơn của tôi
-        </Link>
-      </div>
+      <Link
+        href="/"
+        className="mt-5 block w-full rounded-full bg-espresso py-3.5 text-center font-semibold text-cream hover:bg-black"
+      >
+        Về trang chủ
+      </Link>
+      <Link href="/orders" className="mt-3 block text-center text-sm font-medium text-mocha hover:text-espresso">
+        Xem đơn của tôi
+      </Link>
     </main>
   );
 }

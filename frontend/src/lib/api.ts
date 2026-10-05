@@ -3,7 +3,7 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // Lấy câu báo lỗi từ phản hồi của backend
 // (backend có thể trả 1 câu hoặc 1 danh sách câu)
-export function getErrorMessage(data: any) {
+export function getErrorMessage(data: { message: string | string[] }) {
   if (Array.isArray(data.message)) {
     return data.message.join(', ');
   }

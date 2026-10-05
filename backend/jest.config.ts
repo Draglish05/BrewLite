@@ -8,7 +8,10 @@ const { config: tsconfig } = ts.readConfigFile(
   './tsconfig.json',
   ts.sys.readFile,
 );
-const paths = tsconfig?.compilerOptions?.paths ?? {};
+let paths: Record<string, string[]> = {};
+if (tsconfig.compilerOptions && tsconfig.compilerOptions.paths) {
+  paths = tsconfig.compilerOptions.paths;
+}
 
 const config: Config = {
   moduleFileExtensions: ['js', 'json', 'ts'],
