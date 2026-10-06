@@ -1,6 +1,6 @@
 # BrewLite ☕
 
-Ứng dụng đặt cà phê không dùng tiền mặt – Bài tập lớn môn Công nghệ Phần mềm.
+Ứng dụng đặt cà phê không dùng tiền mặt.
 
 ## Công nghệ
 
