@@ -98,7 +98,7 @@ export default function OrderConfirmationPage() {
   return (
     <main className="mx-auto w-full max-w-md px-4 pb-10 pt-8">
       <div className="rounded-3xl border border-line bg-card px-6 py-8 text-center">
-        <div className={'mx-auto flex h-16 w-16 items-center justify-center rounded-full text-3xl font-bold ' + iconStyle}>
+        <div className={'pop mx-auto flex h-16 w-16 items-center justify-center rounded-full text-3xl font-bold ' + iconStyle}>
           {icon}
         </div>
         <h1 className="mt-4 font-serif text-2xl font-semibold">{title}</h1>

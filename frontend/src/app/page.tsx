@@ -124,7 +124,7 @@ export default function Home() {
           return (
             <section key={tab}>
               <h2 className="mb-3 font-serif text-xl font-semibold">{tab}</h2>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+              <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                 {list.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -137,7 +137,7 @@ export default function Home() {
   } else {
     // 1 loại: chỉ 1 lưới
     content = (
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <div className="stagger grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
         {shownProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

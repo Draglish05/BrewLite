@@ -56,7 +56,7 @@ export default function CartDrawer() {
     );
   } else {
     body = (
-      <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-5 py-4">
+      <div className="stagger flex flex-1 flex-col gap-3 overflow-y-auto px-5 py-4">
         {items.map((item) => {
           // Dòng mô tả: size, có topping thì ghi thêm topping
           let detail = 'Size ' + item.size;
