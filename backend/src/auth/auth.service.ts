@@ -34,6 +34,15 @@ export class AuthService {
     return { id: saved.id, email: saved.email };
   }
 
+  // Thông tin người đang đăng nhập (không trả passwordHash)
+  async getMe(userId: number) {
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) {
+      throw new UnauthorizedException('Tài khoản không tồn tại');
+    }
+    return { id: user.id, email: user.email, loyaltyPoints: user.loyaltyPoints };
+  }
+
   async login(dto: LoginDto) {
     const user = await this.userRepo.findOneBy({ email: dto.email });
     if (!user) {

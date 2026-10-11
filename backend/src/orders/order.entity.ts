@@ -14,8 +14,16 @@ export class Order {
   @Column({ default: OrderStatus.PENDING })
   status: string;
 
+  // Số tiền khách phải trả = tiền hàng - discount
   @Column('int')
   total: number;
+
+  // Mã giảm giá đã dùng (rỗng = không dùng) và số tiền được giảm
+  @Column({ default: '' })
+  promoCode: string;
+
+  @Column('int', { default: 0 })
+  discount: number;
 
   @CreateDateColumn()
   createdAt: Date;

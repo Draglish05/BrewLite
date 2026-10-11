@@ -84,6 +84,17 @@ export default function OrderConfirmationPage() {
     noteBox = <p className="mt-3 font-medium text-caramel">{note}</p>;
   }
 
+  // Đơn có dùng mã giảm giá thì thêm dòng "Giảm giá"
+  let discountRow = null;
+  if (order.discount > 0) {
+    discountRow = (
+      <div className="flex justify-between py-1 text-sm text-green-700">
+        <span>Giảm giá ({order.promoCode})</span>
+        <span>−{formatMoney(order.discount)}</span>
+      </div>
+    );
+  }
+
   return (
     <main className="mx-auto w-full max-w-md px-4 pb-10 pt-8">
       <div className="rounded-3xl border border-line bg-card px-6 py-8 text-center">
@@ -121,6 +132,7 @@ export default function OrderConfirmationPage() {
               </div>
             );
           })}
+          {discountRow}
           <div className="mt-2 flex justify-between border-t border-dashed border-line pt-2 text-lg font-semibold">
             <span>Tổng</span>
             <span>{formatMoney(order.total)}</span>

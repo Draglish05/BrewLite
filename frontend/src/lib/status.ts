@@ -42,7 +42,9 @@ export type OrderItemData = {
 export type OrderData = {
   id: number;
   status: string;
-  total: number;
+  total: number; // số tiền phải trả (đã trừ giảm giá)
+  promoCode: string; // mã giảm giá đã dùng, rỗng = không dùng
+  discount: number; // số tiền được giảm
   createdAt: string;
   items: OrderItemData[];
 };

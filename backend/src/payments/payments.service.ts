@@ -8,8 +8,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order } from '../orders/order.entity';
 import { assertTransition, OrderStatus } from '../orders/order-status';
+import { User } from '../users/user.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { Payment } from './payment.entity';
+
+// Điểm thưởng: cứ 10.000đ đã thanh toán thì được 1 điểm
+const MONEY_PER_POINT = 10000;
 
 // Tạo kết quả trả về cho khách từ 1 lần thanh toán đã lưu
 function buildResult(payment: Payment) {
@@ -37,6 +41,8 @@ export class PaymentsService {
     private readonly paymentRepo: Repository<Payment>,
     @InjectRepository(Order)
     private readonly orderRepo: Repository<Order>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) {}
 
   async create(dto: CreatePaymentDto, userId: number, idempotencyKey: string) {
@@ -104,6 +110,16 @@ export class PaymentsService {
     assertTransition(order.status, orderStatus);
     order.status = orderStatus;
     await this.orderRepo.save(order);
+
+    // Đơn vừa PAID: cộng điểm tích lũy cho khách (tính trên số tiền thực trả).
+    // Chỉ chạy tới đây 1 lần cho mỗi lần thanh toán – request gửi lại cùng mã đã return ở trên
+    if (orderStatus === OrderStatus.PAID) {
+      const points = Math.floor(order.total / MONEY_PER_POINT);
+      if (points > 0) {
+        // UPDATE "user" SET loyaltyPoints = loyaltyPoints + points WHERE id = userId
+        await this.userRepo.increment({ id: userId }, 'loyaltyPoints', points);
+      }
+    }
 
     return buildResult(savedPayment);
   }

@@ -84,6 +84,7 @@ Mở http://localhost:3000.
 | GET | `/products/:id` | Chi tiết 1 món |
 | POST | `/auth/register` | Đăng ký (email, password tối thiểu 6 ký tự), mật khẩu được băm bằng bcrypt |
 | POST | `/auth/login` | Đăng nhập, trả `accessToken` (JWT) |
+| GET | `/auth/me` | Thông tin của tôi: email, điểm tích lũy. **Cần đăng nhập** |
 | POST | `/payments` | Thanh toán đơn bằng Ví (`WALLET`) hoặc Thẻ (`CARD`): thành công `PAID`, lỗi `PAYMENT_FAILED`. **Cần đăng nhập** và header **`Idempotency-Key`** (thanh toán idempotent: gửi lại cùng mã chỉ trả lại kết quả cũ, không thanh toán lần 2) |
 | POST | `/orders` | Tạo đơn từ giỏ hàng (trạng thái `PENDING`), **trừ tồn kho ngay**, trả mã đơn. **Cần đăng nhập** |
 | GET | `/orders/me` | Lịch sử đơn của tôi, đơn mới nhất ở trên. **Cần đăng nhập** |
@@ -95,12 +96,14 @@ Mở http://localhost:3000.
 - **Máy trạng thái đơn:** PENDING → PAID → PREPARING → READY → COMPLETED; PENDING → PAYMENT_FAILED → PENDING (thử lại); PENDING / PAID / PAYMENT_FAILED → CANCELLED. Chuyển khác bị `assertTransition` chặn (lỗi 400).
 - **Thanh toán idempotent:** mỗi lần bấm "Xác nhận trả" gửi 1 `Idempotency-Key`; gửi lại cùng mã thì trả kết quả cũ, không thanh toán lần 2.
 - **Tồn kho:** trừ kho **lúc tạo đơn** (giữ chỗ cho khách), trong transaction + optimistic locking (cột `version` của Product) nên nhiều người đặt cùng lúc cũng không bán quá số còn lại. Một món trong đơn hết hàng thì cả đơn bị hủy, không món nào bị trừ. **Hủy đơn thì hoàn kho.** Thanh toán lỗi vẫn giữ chỗ (vì được thử lại).
+- **Mã giảm giá** (gửi `promoCode` khi tạo đơn, bảng mã trong `backend/src/orders/promo.ts`): `BREW10` giảm 10%; `GIAM20K` giảm 20.000đ cho đơn từ 100.000đ. Mã sai hoặc chưa đủ điều kiện thì không tạo đơn (lỗi 400).
+- **Điểm thưởng:** khi đơn chuyển sang `PAID`, khách được cộng 1 điểm cho mỗi 10.000đ thực trả (sau giảm giá). Thanh toán lỗi không có điểm; gửi lại cùng `Idempotency-Key` không cộng thêm. Xem điểm ở trang **Đơn của tôi**.
 
 ### Chạy test
 
 ```bash
 cd backend
-npm test            # unit test: (a) chặn chuyển trạng thái sai, (b) cùng Idempotency-Key chỉ thanh toán 1 lần
+npm test            # unit test: (a) chặn chuyển trạng thái sai, (b) cùng Idempotency-Key chỉ thanh toán 1 lần, mã giảm giá, điểm thưởng
 npm run test:e2e    # integration test với database thật: (c) đặt đồng thời không vượt tồn kho – cần bật database trước (docker compose up -d db)
 ```
 
@@ -109,7 +112,7 @@ npm run test:e2e    # integration test với database thật: (c) đặt đồng
 Ví dụ body `POST /orders`:
 
 ```json
-{ "items": [ { "productId": 3, "size": "L", "toppings": ["Kem"], "qty": 2 } ] }
+{ "items": [ { "productId": 3, "size": "L", "toppings": ["Kem"], "qty": 2 } ], "promoCode": "BREW10" }
 ```
 
 ## Tiến độ (Product Backlog)
@@ -123,7 +126,7 @@ Ví dụ body `POST /orders`:
 - [x] Task 7 – Đăng ký / Đăng nhập (JWT)
 - [x] Task 8 – Thanh toán không tiền mặt
 - [x] Task 9 – Xác nhận, lịch sử đơn & bàn giao
-- [ ] Task 10 – Nghiệp vụ backend
+- [x] Task 10 – Nghiệp vụ backend
 
 ## Kịch bản demo (từ đầu đến cuối)
 

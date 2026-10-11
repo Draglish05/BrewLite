@@ -14,6 +14,7 @@ export default function MyOrdersPage() {
   const [orders, setOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [points, setPoints] = useState(0); // điểm tích lũy của tôi
 
   useEffect(() => {
     async function loadOrders() {
@@ -27,6 +28,15 @@ export default function MyOrdersPage() {
           return;
         }
         setOrders(data);
+
+        // Lấy điểm tích lũy hiện tại (GET /auth/me)
+        const meRes = await fetch(API_URL + '/auth/me', {
+          headers: { Authorization: 'Bearer ' + token },
+        });
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          setPoints(meData.loyaltyPoints);
+        }
       } catch {
         setError('Không kết nối được máy chủ');
       } finally {
@@ -64,6 +74,12 @@ export default function MyOrdersPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 pb-10 pt-6">
       <h1 className="font-serif text-3xl font-semibold">Đơn của tôi</h1>
+
+      {/* Điểm tích lũy: cứ 10.000đ đã thanh toán được 1 điểm */}
+      <div className="mt-3 flex items-center justify-between rounded-2xl bg-espresso px-5 py-3 text-cream">
+        <span>Điểm tích lũy</span>
+        <span className="text-xl font-semibold text-honey">{points} điểm</span>
+      </div>
 
       <div className="mt-4 flex flex-col gap-3">
         {orders.map((order) => {

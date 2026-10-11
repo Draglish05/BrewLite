@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { API_URL, getErrorMessage } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import { useCartStore, getCartTotal, formatMoney } from '@/store/cart';
+import { getDiscount } from '@/lib/promo';
 
 // Kết quả khi thanh toán thành công
 type PaymentResult = {
@@ -29,8 +30,17 @@ export default function CheckoutPage() {
   const [error, setError] = useState('');
   const [orderId, setOrderId] = useState<number | null>(null); // đơn đã tạo, để thử lại không tạo đơn mới
   const [result, setResult] = useState<PaymentResult | null>(null);
+  const [promoInput, setPromoInput] = useState(''); // chữ đang gõ trong ô mã giảm giá
+  const [appliedCode, setAppliedCode] = useState(''); // mã đã bấm "Áp dụng"
 
-  const total = getCartTotal(items);
+  const total = getCartTotal(items); // tiền hàng
+  const promo = getDiscount(appliedCode, total);
+  const payTotal = total - promo.discount; // số tiền phải trả sau khi giảm
+
+  // Bấm "Áp dụng": ghi nhận mã (viết hoa, bỏ dấu cách thừa)
+  function handleApplyPromo() {
+    setAppliedCode(promoInput.trim().toUpperCase());
+  }
 
   async function handlePay() {
     setError('');
@@ -55,10 +65,16 @@ export default function CheckoutPage() {
           });
         }
 
+        // Chỉ gửi mã giảm giá khi mã dùng được (mã sai thì coi như không dùng)
+        let codeToSend = '';
+        if (promo.discount > 0) {
+          codeToSend = appliedCode;
+        }
+
         const orderRes = await fetch(API_URL + '/orders', {
           method: 'POST',
           headers: headers,
-          body: JSON.stringify({ items: orderItems }),
+          body: JSON.stringify({ items: orderItems, promoCode: codeToSend }),
         });
         const orderData = await orderRes.json();
 
@@ -170,6 +186,29 @@ export default function CheckoutPage() {
     errorBox = <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>;
   }
 
+  // Dòng báo kết quả áp mã giảm giá
+  let promoMessage = null;
+  if (promo.message !== '') {
+    promoMessage = <p className="mt-1 text-sm text-red-600">{promo.message}</p>;
+  } else if (promo.discount > 0) {
+    promoMessage = (
+      <p className="mt-1 text-sm text-green-700">
+        ✓ Đã áp dụng mã {appliedCode}: giảm {formatMoney(promo.discount)}
+      </p>
+    );
+  }
+
+  // Dòng "Giảm giá" trong bảng tóm tắt, chỉ hiện khi có giảm
+  let discountRow = null;
+  if (promo.discount > 0) {
+    discountRow = (
+      <div className="flex justify-between py-1 text-sm text-green-700">
+        <span>Giảm giá ({appliedCode})</span>
+        <span>−{formatMoney(promo.discount)}</span>
+      </div>
+    );
+  }
+
   return (
     <main className="mx-auto w-full max-w-md px-4 pb-10 pt-6">
       {/* Mở lại giỏ hàng (trượt ra bên phải) để sửa món */}
@@ -188,11 +227,33 @@ export default function CheckoutPage() {
             <span>{formatMoney(item.unitPrice * item.qty)}</span>
           </div>
         ))}
+        {discountRow}
         <div className="mt-2 flex justify-between border-t border-dashed border-line pt-2 text-lg font-semibold">
           <span>Tổng</span>
-          <span>{formatMoney(total)}</span>
+          <span>{formatMoney(payTotal)}</span>
         </div>
       </div>
+
+      {/* Mã giảm giá. Đơn đã tạo rồi (đang thử thanh toán lại) thì không đổi mã được nữa */}
+      <h2 className="mb-2 mt-6 font-semibold">Mã giảm giá</h2>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={promoInput}
+          onChange={(event) => setPromoInput(event.target.value)}
+          disabled={orderId !== null}
+          placeholder="Ví dụ: BREW10"
+          className="min-w-0 flex-1 rounded-full border border-line bg-card px-4 py-2.5 uppercase outline-none placeholder:normal-case focus:border-caramel disabled:opacity-60"
+        />
+        <button
+          onClick={handleApplyPromo}
+          disabled={orderId !== null}
+          className="rounded-full border border-espresso px-5 font-semibold hover:bg-latte disabled:opacity-60"
+        >
+          Áp dụng
+        </button>
+      </div>
+      {promoMessage}
 
       {/* Chọn phương thức */}
       <h2 className="mb-2 mt-6 font-semibold">Phương thức</h2>
@@ -240,7 +301,7 @@ export default function CheckoutPage() {
         className="mt-6 flex w-full items-center justify-between rounded-full bg-espresso px-6 py-3.5 font-semibold text-cream hover:bg-black disabled:opacity-60"
       >
         <span>{buttonText}</span>
-        <span className="text-honey">{formatMoney(total)}</span>
+        <span className="text-honey">{formatMoney(payTotal)}</span>
       </button>
     </main>
   );

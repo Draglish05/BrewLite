@@ -13,6 +13,7 @@ import { OrderItem } from './order-item.entity';
 import { Order } from './order.entity';
 import { assertTransition, OrderStatus } from './order-status';
 import { calcUnitPrice } from './pricing';
+import { calcDiscount } from './promo';
 
 // Số lần thử lại khi có người khác vừa sửa tồn kho cùng món
 const MAX_STOCK_RETRY = 5;
@@ -89,11 +90,20 @@ export class OrdersService {
         total = total + item.lineTotal;
       }
 
+      // Áp mã giảm giá (mã sai thì ném lỗi 400 -> transaction hủy, kho được trả lại)
+      const discount = calcDiscount(dto.promoCode, total);
+      let usedCode = '';
+      if (discount > 0) {
+        usedCode = dto.promoCode.trim().toUpperCase();
+      }
+
       // Tạo đơn ở trạng thái PENDING (chờ thanh toán)
       const order = new Order();
       order.userId = userId;
       order.status = OrderStatus.PENDING;
-      order.total = total;
+      order.total = total - discount;
+      order.promoCode = usedCode;
+      order.discount = discount;
       order.items = items;
 
       const saved = await manager.save(order);
@@ -103,6 +113,7 @@ export class OrdersService {
         orderId: saved.id,
         status: saved.status,
         total: saved.total,
+        discount: saved.discount,
       };
     });
   }

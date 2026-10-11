@@ -1,5 +1,17 @@
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsIn, IsInt, Max, Min, ValidateNested } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  MaxLength,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 import { SIZE_NAMES, TOPPING_NAMES } from '../pricing';
 
 // 1 món khách gửi lên
@@ -25,7 +37,14 @@ export class OrderItemDto {
 export class CreateOrderDto {
   @IsArray()
   @ArrayMinSize(1, { message: 'Giỏ hàng phải có ít nhất 1 món' })
+  @ArrayMaxSize(50, { message: 'Giỏ hàng tối đa 50 dòng' })
   @ValidateNested({ each: true }) // kiểm tra từng món bên trong
   @Type(() => OrderItemDto)
   items: OrderItemDto[];
+
+  // Mã giảm giá: không bắt buộc. Không gửi hoặc gửi chuỗi rỗng = không dùng mã
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  promoCode: string;
 }

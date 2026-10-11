@@ -26,7 +26,7 @@ describe('Tồn kho khi đặt đồng thời (transaction + optimistic locking)
   // Tạo đơn 1 món (của user id 999 – user giả chỉ dùng trong test)
   async function orderOne(qty: number) {
     const result = await service.create(
-      { items: [{ productId: product.id, size: 'S', toppings: [], qty: qty }] },
+      { items: [{ productId: product.id, size: 'S', toppings: [], qty: qty }], promoCode: '' },
       999,
     );
     createdOrderIds.push(result.orderId);

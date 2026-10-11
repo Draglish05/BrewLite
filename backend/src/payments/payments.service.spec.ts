@@ -52,6 +52,15 @@ class FakeOrderRepo {
   }
 }
 
+// Bảng user giả lập: chỉ nhớ tổng điểm đã cộng
+class FakeUserRepo {
+  points = 0;
+
+  async increment(where: { id: number }, column: string, amount: number) {
+    this.points = this.points + amount;
+  }
+}
+
 // Tạo 1 đơn mẫu đang chờ thanh toán, của user id = 7
 function createPendingOrder() {
   const order = new Order();
@@ -66,12 +75,29 @@ function createPendingOrder() {
 describe('Thanh toán idempotent (Idempotency-Key)', () => {
   let paymentRepo: FakePaymentRepo;
   let orderRepo: FakeOrderRepo;
+  let userRepo: FakeUserRepo;
   let service: PaymentsService;
 
   beforeEach(() => {
     paymentRepo = new FakePaymentRepo();
     orderRepo = new FakeOrderRepo(createPendingOrder());
-    service = new PaymentsService(paymentRepo as any, orderRepo as any);
+    userRepo = new FakeUserRepo();
+    service = new PaymentsService(paymentRepo as any, orderRepo as any, userRepo as any);
+  });
+
+  it('điểm thưởng: đơn 45.000đ PAID được 4 điểm, gửi lại cùng mã không cộng thêm', async () => {
+    const dto = { orderId: 1, method: 'CARD', simulateFail: false };
+
+    await service.create(dto, 7, 'key-point');
+    await service.create(dto, 7, 'key-point');
+
+    expect(userRepo.points).toBe(4);
+  });
+
+  it('điểm thưởng: thanh toán lỗi thì không được điểm', async () => {
+    await service.create({ orderId: 1, method: 'CARD', simulateFail: true }, 7, 'key-point-fail');
+
+    expect(userRepo.points).toBe(0);
   });
 
   it('gửi 2 lần liên tiếp cùng mã: chỉ tạo 1 lần thanh toán, lần 2 trả lại đúng kết quả cũ', async () => {
