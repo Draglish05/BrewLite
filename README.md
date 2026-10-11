@@ -6,8 +6,8 @@
 
 | Phần | Công nghệ |
 |---|---|
-| Frontend | Next.js (React, TypeScript), TailwindCSS |
-| Backend | NestJS (TypeScript), REST API |
+| Frontend | Next.js (React, TypeScript), TailwindCSS, Zustand (giỏ hàng) |
+| Backend | NestJS (TypeScript), REST API, class-validator, JWT, bcrypt |
 | CSDL | PostgreSQL + TypeORM |
 | DevOps | Docker Compose, Git |
 
@@ -84,17 +84,35 @@ Mở http://localhost:3000.
 | GET | `/products/:id` | Chi tiết 1 món |
 | POST | `/auth/register` | Đăng ký (email, password tối thiểu 6 ký tự), mật khẩu được băm bằng bcrypt |
 | POST | `/auth/login` | Đăng nhập, trả `accessToken` (JWT) |
-| POST | `/payments` | Thanh toán đơn bằng Ví (`WALLET`) hoặc Thẻ (`CARD`): thành công `PAID`, lỗi `PAYMENT_FAILED`. **Cần đăng nhập** |
-| POST | `/orders` | Tạo đơn từ giỏ hàng (trạng thái `PENDING`), trả mã đơn. **Cần đăng nhập** |
+| GET | `/auth/me` | Thông tin của tôi: email, điểm tích lũy. **Cần đăng nhập** |
+| POST | `/payments` | Thanh toán đơn bằng Ví (`WALLET`) hoặc Thẻ (`CARD`): thành công `PAID`, lỗi `PAYMENT_FAILED`. **Cần đăng nhập** và header **`Idempotency-Key`** (thanh toán idempotent: gửi lại cùng mã chỉ trả lại kết quả cũ, không thanh toán lần 2) |
+| POST | `/orders` | Tạo đơn từ giỏ hàng (trạng thái `PENDING`), **trừ tồn kho ngay**, trả mã đơn. **Cần đăng nhập** |
 | GET | `/orders/me` | Lịch sử đơn của tôi, đơn mới nhất ở trên. **Cần đăng nhập** |
 | GET | `/orders/:id` | Chi tiết 1 đơn (mã đơn, trạng thái, các món). Chỉ chủ đơn xem được. **Cần đăng nhập** |
+| PATCH | `/orders/:id/status` | Khách **hủy đơn**: body `{ "status": "CANCELLED" }` (chỉ nhận CANCELLED), kho được cộng lại. **Cần đăng nhập** |
+
+### Quy tắc nghiệp vụ (Task 10)
+
+- **Máy trạng thái đơn:** PENDING → PAID → PREPARING → READY → COMPLETED; PENDING → PAYMENT_FAILED → PENDING (thử lại); PENDING / PAID / PAYMENT_FAILED → CANCELLED. Chuyển khác bị `assertTransition` chặn (lỗi 400).
+- **Thanh toán idempotent:** mỗi lần bấm "Xác nhận trả" gửi 1 `Idempotency-Key`; gửi lại cùng mã thì trả kết quả cũ, không thanh toán lần 2.
+- **Tồn kho:** trừ kho **lúc tạo đơn** (giữ chỗ cho khách), trong transaction + optimistic locking (cột `version` của Product) nên nhiều người đặt cùng lúc cũng không bán quá số còn lại. Một món trong đơn hết hàng thì cả đơn bị hủy, không món nào bị trừ. **Hủy đơn thì hoàn kho.** Thanh toán lỗi vẫn giữ chỗ (vì được thử lại).
+- **Mã giảm giá** (gửi `promoCode` khi tạo đơn, bảng mã trong `backend/src/orders/promo.ts`): `BREW10` giảm 10%; `GIAM20K` giảm 20.000đ cho đơn từ 100.000đ. Mã sai hoặc chưa đủ điều kiện thì không tạo đơn (lỗi 400).
+- **Điểm thưởng:** khi đơn chuyển sang `PAID`, khách được cộng 1 điểm cho mỗi 10.000đ thực trả (sau giảm giá). Thanh toán lỗi không có điểm; gửi lại cùng `Idempotency-Key` không cộng thêm. Xem điểm ở trang **Đơn của tôi**.
+
+### Chạy test
+
+```bash
+cd backend
+npm test            # unit test: (a) chặn chuyển trạng thái sai, (b) cùng Idempotency-Key chỉ thanh toán 1 lần, mã giảm giá, điểm thưởng
+npm run test:e2e    # integration test với database thật: (c) đặt đồng thời không vượt tồn kho – cần bật database trước (docker compose up -d db)
+```
 
 `POST /orders` cần header `Authorization: Bearer <accessToken>` lấy từ `/auth/login`.
 
 Ví dụ body `POST /orders`:
 
 ```json
-{ "items": [ { "productId": 3, "size": "L", "toppings": ["Kem"], "qty": 2 } ] }
+{ "items": [ { "productId": 3, "size": "L", "toppings": ["Kem"], "qty": 2 } ], "promoCode": "BREW10" }
 ```
 
 ## Tiến độ (Product Backlog)
@@ -108,15 +126,16 @@ Ví dụ body `POST /orders`:
 - [x] Task 7 – Đăng ký / Đăng nhập (JWT)
 - [x] Task 8 – Thanh toán không tiền mặt
 - [x] Task 9 – Xác nhận, lịch sử đơn & bàn giao
-- [ ] Task 10 – Nghiệp vụ backend
+- [x] Task 10 – Nghiệp vụ backend
 
 ## Kịch bản demo (từ đầu đến cuối)
 
-1. Mở http://localhost:3000, bấm **đăng ký ngay**, tạo tài khoản (mật khẩu từ 6 ký tự). Đăng ký xong tự đăng nhập.
-2. Ở menu, bấm một món, chọn size và topping (giá thay đổi theo lựa chọn), bấm **Thêm vào giỏ**.
-3. Vào **Giỏ hàng**: tăng, giảm, xóa món; xem tổng số lượng và tổng tiền. Bấm **Thanh toán**.
-4. Chọn **Ví** hoặc **Thẻ**:
+1. Mở http://localhost:3000 → thấy ngay menu (chưa cần đăng nhập).
+2. Bấm một món, chọn size và topping (giá thay đổi theo lựa chọn), bấm **Thêm vào giỏ**.
+3. Bấm icon **giỏ hàng** (góc phải) hoặc thanh **Xem giỏ hàng** ở dưới: giỏ trượt ra bên phải ngay trên trang đang xem. Tăng, giảm, xóa món; xem tổng số lượng và tổng tiền. Bấm **Thanh toán**.
+4. Chưa đăng nhập thì app chuyển sang trang đăng nhập: bấm **đăng ký ngay**, tạo tài khoản (mật khẩu từ 6 ký tự). Đăng ký xong tự đăng nhập và quay lại màn thanh toán.
+5. Chọn **Ví** hoặc **Thẻ**:
    - Tick "Giả lập thanh toán lỗi" rồi xác nhận: báo lỗi, đơn thành `PAYMENT_FAILED`, giỏ hàng vẫn còn.
    - Bỏ tick rồi xác nhận lại: đơn thành `PAID`.
-5. Màn hình **xác nhận** hiện mã đơn, trạng thái và các món đã đặt.
-6. Bấm **Đơn của tôi** để xem lịch sử các đơn đã đặt.
+6. Màn hình **xác nhận** hiện mã đơn, trạng thái và các món đã đặt.
+7. Bấm **Đơn của tôi** để xem lịch sử các đơn đã đặt.

@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UpdateStatusDto } from './dto/update-status.dto';
 import { OrdersService } from './orders.service';
 
 @Controller('orders')
@@ -29,5 +30,17 @@ export class OrdersController {
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     return this.ordersService.findOne(id, req.user.id);
+  }
+
+  // PATCH /orders/5/status – khách hủy đơn (chỉ nhận status = CANCELLED)
+  // Chuyển sai quy tắc state machine thì trả lỗi 400
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/status')
+  changeStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateStatusDto,
+    @Req() req: any,
+  ) {
+    return this.ordersService.changeStatus(id, req.user.id, dto.status);
   }
 }

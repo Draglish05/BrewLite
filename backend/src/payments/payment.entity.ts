@@ -8,8 +8,9 @@ export class Payment {
   @Column('int')
   orderId: number;
 
-  // Khóa chống thanh toán trùng, Task 10 sẽ dùng
-  @Column('varchar', { nullable: true })
+  // Mã chống thanh toán trùng (Idempotency-Key do frontend gửi lên).
+  // unique: database không cho 2 lần thanh toán cùng 1 mã, kể cả khi 2 request tới cùng lúc
+  @Column('varchar', { nullable: true, unique: true })
   idempotencyKey: string | null;
 
   @Column('int')

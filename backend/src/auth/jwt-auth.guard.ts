@@ -24,7 +24,7 @@ export class JwtAuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(parts[1]);
       // Lưu người dùng vào request để controller dùng
       request.user = { id: payload.sub, email: payload.email };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Token không hợp lệ hoặc đã hết hạn');
     }
 

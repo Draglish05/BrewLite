@@ -1,23 +1,74 @@
 @import "tailwindcss";
 
+/* Bảng màu BrewLite: nền kem, nâu espresso, vàng caramel */
 :root {
-  --background: #ffffff; /* nền trắng */
-  --foreground: #1f2937; /* chữ xám đậm */
+  --background: #f6efe4; /* nền kem */
+  --foreground: #2b1d14; /* chữ nâu espresso */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-cream: #f6efe4; /* nền trang */
+  --color-card: #fffcf7; /* nền thẻ */
+  --color-latte: #efe3cf; /* khung ảnh món */
+  --color-line: #e8dccb; /* viền */
+  --color-espresso: #2b1d14; /* nút, chữ đậm */
+  --color-mocha: #7a6352; /* chữ phụ */
+  --color-caramel: #b7791f; /* giá tiền, điểm nhấn */
+  --color-honey: #e9b872; /* chữ vàng trên nền nâu đậm */
+  --font-sans: var(--font-body);
+  --font-serif: var(--font-logo);
 }
 
 html {
-  scroll-behavior: smooth; /* bấm loại đồ uống thì cuộn mượt tới đó */
+  scroll-behavior: smooth;
+}
+
+/* Ẩn thanh cuộn ngang (hàng nút chọn loại đồ uống) nhưng vẫn vuốt được */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Chuyển trang: trang mới mờ -> rõ dần và trượt lên nhẹ (0,3 giây) */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* backwards: chạy xong thì bỏ hẳn hiệu ứng, để thanh giỏ hàng (fixed) vẫn dính đáy màn hình */
+.page-enter {
+  animation: page-enter 0.3s ease-out backwards;
+}
+
+/* Nhấn nút / thẻ bo góc: lún nhẹ rồi bật lại */
+@layer base {
+  button,
+  a[class*='rounded'] {
+    transition: transform 0.12s ease;
+  }
+  button:active:not(:disabled),
+  a[class*='rounded']:active {
+    transform: scale(0.96);
+  }
+}
+
+/* Máy nào bật "giảm chuyển động" thì tắt hiệu ứng */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter {
+    animation: none;
+  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

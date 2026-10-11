@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore, formatMoney } from '@/store/cart';
-import CupIcon from '@/components/CupIcon';
+import ProductImage from '@/components/ProductImage';
+import CartBar from '@/components/CartBar';
 
 type Product = {
   id: number;
@@ -60,7 +61,7 @@ export default function ProductDetail() {
         }
         const data = await res.json();
         setProduct(data);
-      } catch (e) {
+      } catch {
         setError('Không tìm thấy món này.');
       }
       setLoading(false);
@@ -71,26 +72,39 @@ export default function ProductDetail() {
 
   // Bấm vào 1 topping: đang chọn thì bỏ, chưa chọn thì thêm
   function toggleTopping(name: string) {
-    if (toppings.includes(name)) {
-      setToppings(toppings.filter((t) => t !== name));
-    } else {
-      setToppings([...toppings, name]);
+    const newToppings: string[] = [];
+    let wasSelected = false;
+
+    // Chép các topping đang chọn sang danh sách mới, bỏ qua topping vừa bấm
+    for (const topping of toppings) {
+      if (topping === name) {
+        wasSelected = true;
+      } else {
+        newToppings.push(topping);
+      }
     }
+
+    // Chưa chọn thì thêm vào
+    if (!wasSelected) {
+      newToppings.push(name);
+    }
+
+    setToppings(newToppings);
   }
 
   // Tính giá = giá gốc + tiền size + tiền topping
   function calcPrice(basePrice: number) {
     let total = basePrice;
 
-    for (const s of SIZES) {
-      if (s.name === size) {
-        total = total + s.extra;
+    for (const sizeOption of SIZES) {
+      if (sizeOption.name === size) {
+        total = total + sizeOption.extra;
       }
     }
 
-    for (const t of TOPPINGS) {
-      if (toppings.includes(t.name)) {
-        total = total + t.price;
+    for (const topping of TOPPINGS) {
+      if (toppings.includes(topping.name)) {
+        total = total + topping.price;
       }
     }
 
@@ -98,92 +112,123 @@ export default function ProductDetail() {
   }
 
   // Bấm "Thêm vào giỏ"
-  function handleAddToCart(p: Product) {
+  function handleAddToCart(selectedProduct: Product) {
     addItem({
-      productId: p.id,
-      name: p.name,
-      color: p.color,
+      productId: selectedProduct.id,
+      name: selectedProduct.name,
+      color: selectedProduct.color,
       size: size,
       toppings: toppings,
-      unitPrice: calcPrice(p.price),
+      unitPrice: calcPrice(selectedProduct.price),
     });
     setAdded(true);
   }
 
   if (loading) {
-    return <main className="p-8">Đang tải...</main>;
-  }
-
-  if (error || !product) {
     return (
-      <main className="p-8">
-        <p className="text-red-600">{error}</p>
-        <Link href="/" className="text-sky-700 underline">← Về Menu</Link>
+      <main className="mx-auto w-full max-w-4xl px-4 pt-6">
+        <div className="h-72 animate-pulse rounded-3xl bg-latte" />
       </main>
     );
   }
 
+  if (error || !product) {
+    return (
+      <main className="mx-auto w-full max-w-4xl px-4 pt-6">
+        <p className="rounded-xl bg-red-50 p-4 text-red-700">{error}</p>
+        <Link href="/" className="mt-4 inline-block text-sm font-medium text-mocha hover:text-espresso">
+          ← Về menu
+        </Link>
+      </main>
+    );
+  }
+
+  // Báo cho khách biết đã thêm thành công
+  let addedMessage = null;
+  if (added) {
+    addedMessage = <p className="mt-3 text-center text-sm text-green-700">✓ Đã thêm vào giỏ</p>;
+  }
+
   return (
-    <main className="mx-auto max-w-md p-8">
-      <Link href="/" className="text-sky-700 underline">← Menu</Link>
+    <main className="mx-auto w-full max-w-4xl px-4 pb-28 pt-4">
+      <Link href="/" className="text-sm font-medium text-mocha hover:text-espresso">
+        ← Menu
+      </Link>
 
-      <div className="mt-4 flex h-56 items-center justify-center rounded-xl bg-sky-50">
-        <CupIcon color={product.color} className="h-48" />
+      <div className="mt-3 grid gap-6 md:grid-cols-2">
+        {/* Ảnh món: chiều cao cố định (điện thoại h-56, máy tính 28rem)
+            để khi hiện dòng "Đã thêm vào giỏ" ở cột bên phải thì khung ảnh không bị kéo dài */}
+        <div className="flex h-56 items-center justify-center rounded-3xl bg-latte md:h-[28rem]">
+          <ProductImage imageUrl={product.imageUrl} color={product.color} name={product.name} className="h-44 md:h-56" />
+        </div>
+
+        <div>
+          <p className="text-sm text-mocha">{product.category}</p>
+          <h1 className="font-serif text-3xl font-semibold">{product.name}</h1>
+          <p className="mt-1 text-lg font-semibold text-caramel">{formatMoney(product.price)}</p>
+
+          {/* Chọn size */}
+          <h2 className="mt-6 font-semibold">Size</h2>
+          <div className="mt-2 flex gap-2">
+            {SIZES.map((sizeOption) => {
+              let style = 'border-line bg-card hover:border-espresso';
+              // Size đang chọn thì tô nâu đậm
+              if (size === sizeOption.name) {
+                style = 'border-espresso bg-espresso text-cream';
+              }
+
+              // Dòng chữ nhỏ dưới tên size
+              let extraText = 'Mặc định';
+              if (sizeOption.extra > 0) {
+                extraText = '+' + formatMoney(sizeOption.extra);
+              }
+
+              return (
+                <button
+                  key={sizeOption.name}
+                  onClick={() => setSize(sizeOption.name)}
+                  className={'flex-1 rounded-2xl border py-2.5 font-semibold ' + style}
+                >
+                  {sizeOption.name}
+                  <span className="block text-xs font-normal opacity-80">{extraText}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Chọn topping: bấm để chọn / bỏ chọn */}
+          <h2 className="mt-6 font-semibold">Topping</h2>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {TOPPINGS.map((topping) => {
+              let style = 'border-line bg-card text-espresso hover:border-espresso';
+              if (toppings.includes(topping.name)) {
+                style = 'border-espresso bg-espresso text-cream';
+              }
+              return (
+                <button
+                  key={topping.name}
+                  onClick={() => toggleTopping(topping.name)}
+                  className={'rounded-full border px-3.5 py-1.5 text-sm ' + style}
+                >
+                  {topping.name} <span className="opacity-70">+{formatMoney(topping.price)}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => handleAddToCart(product)}
+            className="mt-8 flex w-full items-center justify-between rounded-full bg-espresso px-6 py-3.5 font-semibold text-cream hover:bg-black"
+          >
+            <span>Thêm vào giỏ</span>
+            <span className="text-honey">{formatMoney(calcPrice(product.price))}</span>
+          </button>
+
+          {addedMessage}
+        </div>
       </div>
-      <h1 className="mt-4 text-2xl font-bold">{product.name}</h1>
-      <p className="text-gray-500">Giá: {formatMoney(product.price)}</p>
 
-      {/* Chọn size */}
-      <h2 className="mt-6 font-semibold">Size</h2>
-      <div className="mt-2 flex gap-2">
-        {SIZES.map((s) => {
-          // Nút bình thường
-          let style = 'flex-1 rounded-lg border-2 border-gray-300 py-2';
-          // Size đang chọn thì tô xanh
-          if (size === s.name) {
-            style = 'flex-1 rounded-lg border-2 border-sky-600 bg-sky-600 py-2 text-white';
-          }
-
-          return (
-            <button key={s.name} onClick={() => setSize(s.name)} className={style}>
-              {s.name}
-              {s.extra > 0 && <span className="block text-xs">+{formatMoney(s.extra)}</span>}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Chọn topping */}
-      <h2 className="mt-6 font-semibold">Topping</h2>
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        {TOPPINGS.map((t) => (
-          <label key={t.name} className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={toppings.includes(t.name)}
-              onChange={() => toggleTopping(t.name)}
-            />
-            {t.name} (+{formatMoney(t.price)})
-          </label>
-        ))}
-      </div>
-
-      <button
-        onClick={() => handleAddToCart(product)}
-        className="mt-8 w-full rounded-xl bg-sky-600 py-3 font-semibold text-white hover:bg-sky-700"
-      >
-        Thêm vào giỏ – {formatMoney(calcPrice(product.price))}
-      </button>
-
-      {/* Báo cho khách biết đã thêm thành công */}
-      {added && (
-        <p className="mt-3 text-center text-green-700">
-          ✓ Đã thêm vào giỏ.{' '}
-          <Link href="/cart" className="underline">
-            Xem giỏ hàng
-          </Link>
-        </p>
-      )}
+      <CartBar />
     </main>
   );
 }

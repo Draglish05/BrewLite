@@ -17,21 +17,26 @@ export const TOPPINGS = [
 ];
 
 export const SIZE_NAMES = ['S', 'M', 'L'];
-export const TOPPING_NAMES = TOPPINGS.map((t) => t.name);
+
+// Danh sách tên topping (dùng để kiểm tra topping khách gửi lên có hợp lệ không)
+export const TOPPING_NAMES: string[] = [];
+for (const topping of TOPPINGS) {
+  TOPPING_NAMES.push(topping.name);
+}
 
 // Giá 1 ly = giá gốc + tiền size + tiền topping
 export function calcUnitPrice(basePrice: number, size: string, toppings: string[]) {
   let total = basePrice;
 
-  for (const s of SIZES) {
-    if (s.name === size) {
-      total = total + s.extra;
+  for (const sizeOption of SIZES) {
+    if (sizeOption.name === size) {
+      total = total + sizeOption.extra;
     }
   }
 
-  for (const t of TOPPINGS) {
-    if (toppings.includes(t.name)) {
-      total = total + t.price;
+  for (const topping of TOPPINGS) {
+    if (toppings.includes(topping.name)) {
+      total = total + topping.price;
     }
   }
 

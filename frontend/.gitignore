@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# file mẫu thì vẫn đưa lên Git (đề yêu cầu có .env.example)
+!.env.example
 
 # vercel
 .vercel

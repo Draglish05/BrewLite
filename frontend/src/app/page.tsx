@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import CupIcon from '@/components/CupIcon';
+import ProductImage from '@/components/ProductImage';
+import CartBar from '@/components/CartBar';
+import { formatMoney } from '@/store/cart';
 
 // Khuôn dữ liệu 1 món (giống Product bên backend)
 type Product = {
@@ -15,25 +17,49 @@ type Product = {
   color: string;
 };
 
-// Các loại đồ uống, theo thứ tự hiển thị
-// id dùng để làm "mốc" trên trang: bấm #matcha sẽ nhảy tới phần Matcha
-const CATEGORIES = [
-  { name: 'Cà phê', id: 'ca-phe' },
-  { name: 'Trà sữa', id: 'tra-sua' },
-  { name: 'Trà', id: 'tra' },
-  { name: 'Matcha', id: 'matcha' },
-  { name: 'Cacao', id: 'cacao' },
-];
+// Các nút chọn loại, theo thứ tự hiển thị. Nút đầu tiên "Tất cả" là hiện mọi loại
+const ALL = 'Tất cả';
+const TABS = [ALL, 'Cà phê', 'Trà sữa', 'Trà', 'Matcha', 'Cacao'];
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// Lấy ra các món thuộc 1 loại
+function getProductsOfCategory(products: Product[], category: string) {
+  const result: Product[] = [];
+  for (const product of products) {
+    if (product.category === category) {
+      result.push(product);
+    }
+  }
+  return result;
+}
+
+// 1 ô món trong lưới
+function ProductCard({ product }: { product: Product }) {
+  return (
+    <Link
+      href={'/products/' + product.id}
+      className="rounded-2xl border border-line bg-card p-2.5 transition hover:-translate-y-0.5 hover:shadow-md"
+    >
+      <div className="relative flex h-32 items-center justify-center rounded-xl bg-latte">
+        <ProductImage imageUrl={product.imageUrl} color={product.color} name={product.name} className="h-24" />
+        {/* Nút + nhỏ ở góc: bấm vào để chọn size, topping */}
+        <span className="absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-espresso text-lg leading-none text-cream">
+          +
+        </span>
+      </div>
+      <h3 className="mt-2.5 px-1 font-medium leading-snug">{product.name}</h3>
+      <p className="px-1 pb-1 font-semibold text-caramel">{formatMoney(product.price)}</p>
+    </Link>
+  );
+}
+
 export default function Home() {
-  // Các "bảng ghi nhớ" của trang
   const [products, setProducts] = useState<Product[]>([]); // danh sách món
   const [loading, setLoading] = useState(true); // đang tải hay không
   const [error, setError] = useState(''); // câu báo lỗi (rỗng = không lỗi)
   const [search, setSearch] = useState(''); // chữ gõ trong ô tìm kiếm
-  const [activeCat, setActiveCat] = useState('ca-phe'); // loại đang được chọn ở thanh bên
+  const [activeTab, setActiveTab] = useState(ALL); // loại đang chọn
 
   // Chạy 1 lần khi mở trang: gọi backend lấy menu
   useEffect(() => {
@@ -45,7 +71,7 @@ export default function Home() {
         }
         const data = await res.json();
         setProducts(data);
-      } catch (e) {
+      } catch {
         setError('Không tải được menu. Kiểm tra backend đã chạy chưa nhé.');
       }
       setLoading(false);
@@ -54,49 +80,53 @@ export default function Home() {
     loadProducts();
   }, []);
 
-  // Lọc món theo ô tìm kiếm (không phân biệt hoa thường)
+  // Lọc món: tên phải có chữ đang tìm (không phân biệt hoa thường) và đúng loại đang chọn
   const keyword = search.toLowerCase();
-  const shownProducts = products.filter((p) => p.name.toLowerCase().includes(keyword));
+  const shownProducts: Product[] = [];
+  for (const product of products) {
+    const matchName = product.name.toLowerCase().includes(keyword);
+
+    let matchTab = true;
+    if (activeTab !== ALL && product.category !== activeTab) {
+      matchTab = false;
+    }
+
+    if (matchName && matchTab) {
+      shownProducts.push(product);
+    }
+  }
 
   // Chọn nội dung hiển thị theo các tình huống
   let content;
   if (loading) {
-    content = <p>Đang tải menu...</p>;
+    // 8 khung nhấp nháy trong lúc chờ
+    const skeletons = [];
+    for (let index = 1; index <= 8; index++) {
+      skeletons.push(<div key={index} className="h-48 animate-pulse rounded-2xl bg-latte" />);
+    }
+    content = <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">{skeletons}</div>;
   } else if (error) {
-    content = <p className="text-red-600">{error}</p>;
+    content = <p className="rounded-xl bg-red-50 p-4 text-red-700">{error}</p>;
   } else if (products.length === 0) {
-    content = <p>Hiện chưa có món nào.</p>;
+    content = <p className="text-mocha">Hiện chưa có món nào.</p>;
   } else if (shownProducts.length === 0) {
-    content = <p>Không tìm thấy món nào có chữ "{search}".</p>;
-  } else {
+    content = <p className="text-mocha">Không tìm thấy món nào phù hợp.</p>;
+  } else if (activeTab === ALL) {
+    // Tất cả: chia theo từng loại
     content = (
       <div className="flex flex-col gap-8">
-        {CATEGORIES.map((cat) => {
-          // Lọc ra các món thuộc loại này
-          const list = shownProducts.filter((p) => p.category === cat.name);
+        {TABS.map((tab) => {
+          if (tab === ALL) return null;
+
+          const list = getProductsOfCategory(shownProducts, tab);
           if (list.length === 0) return null;
 
           return (
-            // scroll-mt-4: khi nhảy tới thì chừa khoảng trống phía trên
-            <section key={cat.id} id={cat.id} className="scroll-mt-4">
-              <h2 className="mb-3 border-b-2 border-sky-200 pb-1 text-xl font-bold text-sky-900">{cat.name}</h2>
-
-              {/* Ô món nhỏ, trải hàng ngang: màn hình càng rộng càng nhiều cột */}
-              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7">
-                {list.map((p) => (
-                  <Link
-                    key={p.id}
-                    href={'/products/' + p.id}
-                    className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm hover:border-sky-400 hover:shadow-md"
-                  >
-                    <div className="flex h-24 items-center justify-center bg-sky-50">
-                      <CupIcon color={p.color} className="h-20" />
-                    </div>
-                    <div className="p-2">
-                      <h3 className="text-sm font-semibold leading-tight">{p.name}</h3>
-                      <p className="text-sm text-sky-700">{p.price.toLocaleString('vi-VN')}đ</p>
-                    </div>
-                  </Link>
+            <section key={tab}>
+              <h2 className="mb-3 font-serif text-xl font-semibold">{tab}</h2>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                {list.map((product) => (
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             </section>
@@ -104,43 +134,50 @@ export default function Home() {
         })}
       </div>
     );
+  } else {
+    // 1 loại: chỉ 1 lưới
+    content = (
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        {shownProducts.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    );
   }
 
   return (
-    <main className="flex w-full flex-1 flex-col md:flex-row">
-      {/* Thanh bên kiểu máy POS: ô tìm kiếm + danh sách loại */}
-      <aside className="border-b border-gray-200 bg-white md:sticky md:top-0 md:h-screen md:w-52 md:shrink-0 md:border-b-0 md:border-r">
-        <div className="p-3">
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="🔍 Tìm món..."
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-sky-500"
-          />
-        </div>
+    <main className="mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-4">
+      {/* Ô tìm món */}
+      <input
+        type="text"
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        placeholder="Tìm đồ uống..."
+        className="w-full rounded-full border border-line bg-card px-5 py-2.5 outline-none placeholder:text-mocha/70 focus:border-caramel"
+      />
 
-        <p className="px-4 pb-1 text-xs font-semibold uppercase text-gray-400">Loại đồ uống</p>
-        <nav className="flex overflow-x-auto md:flex-col">
-          {CATEGORIES.map((cat) => {
-            // Kiểu chữ bình thường
-            let style = 'whitespace-nowrap border-l-4 border-transparent px-4 py-3 text-gray-700 hover:bg-gray-50';
-            // Loại đang chọn thì tô xanh
-            if (activeCat === cat.id) {
-              style = 'whitespace-nowrap border-l-4 border-sky-600 bg-sky-100 px-4 py-3 font-semibold text-sky-800';
-            }
+      {/* Các nút chọn loại, trượt ngang được trên điện thoại */}
+      <nav className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1">
+        {TABS.map((tab) => {
+          let style = 'border-line bg-card text-mocha hover:border-espresso';
+          if (activeTab === tab) {
+            style = 'border-espresso bg-espresso text-cream';
+          }
+          return (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={'shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium ' + style}
+            >
+              {tab}
+            </button>
+          );
+        })}
+      </nav>
 
-            return (
-              <a key={cat.id} href={'#' + cat.id} onClick={() => setActiveCat(cat.id)} className={style}>
-                {cat.name}
-              </a>
-            );
-          })}
-        </nav>
-      </aside>
+      <div className="mt-5">{content}</div>
 
-      {/* Khu chọn món, chia theo từng loại */}
-      <div className="flex-1 bg-gray-50 p-4 md:p-6">{content}</div>
+      <CartBar />
     </main>
   );
 }

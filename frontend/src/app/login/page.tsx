@@ -1,24 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { API_URL, getErrorMessage } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
-import { useCartStore } from '@/store/cart';
 
 export default function LoginPage() {
-  const router = useRouter();
   const login = useAuthStore((state) => state.login);
-  const cartItems = useCartStore((state) => state.items);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault(); // không cho trình duyệt tải lại trang
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault(); // không cho trình duyệt tải lại trang
     setError('');
     setLoading(true);
 
@@ -35,15 +31,10 @@ export default function LoginPage() {
         return;
       }
 
+      // Lưu đăng nhập. AuthGate sẽ tự chuyển trang:
+      // giỏ có món thì đi tiếp tới thanh toán, không thì về menu
       login(data.accessToken, data.user.email);
-
-      // Giỏ có món thì về giỏ hàng để thanh toán, không thì về menu
-      if (cartItems.length > 0) {
-        router.push('/cart');
-      } else {
-        router.push('/');
-      }
-    } catch (err) {
+    } catch {
       setError('Không kết nối được máy chủ');
     } finally {
       setLoading(false);
@@ -55,53 +46,63 @@ export default function LoginPage() {
     buttonText = 'Đang đăng nhập...';
   }
 
+  // Có lỗi thì hiện dòng báo lỗi
+  let errorBox = null;
+  if (error !== '') {
+    errorBox = <p className="text-sm text-red-600">{error}</p>;
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-sky-100 p-4">
-      {/* Chữ BREWLITE to, ở giữa trang */}
-      <p className="mb-8 pl-[0.1em] text-center text-6xl font-extrabold tracking-widest text-sky-800 sm:text-7xl">
-        BREWLITE
+    <main className="flex min-h-screen flex-col items-center justify-center bg-cream p-4">
+      {/* Logo brewlite to, ở giữa trang */}
+      <p className="mb-6 text-center font-serif text-6xl font-semibold tracking-tight sm:text-7xl">
+        brewlite<span className="text-caramel">.</span>
       </p>
 
       {/* Khung bên dưới */}
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow">
-        <h1 className="mb-4 text-center text-xl font-semibold">Đăng nhập</h1>
+      <div className="w-full max-w-sm rounded-3xl border border-line bg-card p-8">
+        <h1 className="mb-5 text-center font-serif text-2xl font-semibold">Đăng nhập</h1>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="rounded-lg border border-gray-300 px-3 py-2"
-        />
-        <input
-          type="password"
-          placeholder="Mật khẩu"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="rounded-lg border border-gray-300 px-3 py-2"
-        />
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+            className="rounded-full border border-line bg-cream px-4 py-2.5 outline-none focus:border-caramel"
+          />
+          <input
+            type="password"
+            placeholder="Mật khẩu"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+            className="rounded-full border border-line bg-cream px-4 py-2.5 outline-none focus:border-caramel"
+          />
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+          {errorBox}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-xl bg-sky-600 py-2 font-semibold text-white hover:bg-sky-700 disabled:bg-gray-400"
-        >
-          {buttonText}
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-1 rounded-full bg-espresso py-3 font-semibold text-cream hover:bg-black disabled:opacity-60"
+          >
+            {buttonText}
+          </button>
+        </form>
 
-      <p className="mt-4 text-center text-sm">
-        Chưa có tài khoản,{' '}
-        <Link href="/register" className="text-sky-700 underline">
-          đăng ký ngay
-        </Link>
-      </p>
+        <p className="mt-4 text-center text-sm text-mocha">
+          Chưa có tài khoản,{' '}
+          <Link href="/register" className="font-medium text-caramel hover:underline">
+            đăng ký ngay
+          </Link>
+        </p>
       </div>
+
+      <Link href="/" className="mt-5 text-sm font-medium text-mocha hover:text-espresso">
+        ← Tiếp tục xem menu
+      </Link>
     </main>
   );
 }
