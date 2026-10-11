@@ -81,7 +81,7 @@ export default function MyOrdersPage() {
         <span className="text-xl font-semibold text-honey">{points} điểm</span>
       </div>
 
-      <div className="mt-4 flex flex-col gap-3">
+      <div className="stagger mt-4 flex flex-col gap-3">
         {orders.map((order) => {
           // Đếm tổng số ly của đơn
           let cups = 0;

@@ -34,11 +34,12 @@ export default function Header() {
     );
   }
 
-  // Badge tổng số ly, chỉ hiện khi giỏ có món
+  // Badge tổng số ly, chỉ hiện khi giỏ có món.
+  // key={count}: mỗi lần số ly đổi, React tạo lại badge nên hoạt ảnh "bump" (nảy lên) chạy lại
   let badge = null;
   if (count > 0) {
     badge = (
-      <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-caramel px-1 text-xs font-semibold text-white">
+      <span key={count} className="bump absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-caramel px-1 text-xs font-semibold text-white">
         {count}
       </span>
     );

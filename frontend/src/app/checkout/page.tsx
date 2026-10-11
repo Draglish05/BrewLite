@@ -210,7 +210,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-md px-4 pb-10 pt-6">
+    <main className="slide-in-right stagger mx-auto w-full max-w-md px-4 pb-10 pt-6">
       {/* Mở lại giỏ hàng (trượt ra bên phải) để sửa món */}
       <button onClick={openCart} className="text-sm font-medium text-mocha hover:text-espresso">
         ← Sửa giỏ hàng

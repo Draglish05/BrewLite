@@ -22,6 +22,8 @@
 }
 
 html {
+  /* Luôn chừa sẵn chỗ cho thanh cuộn dọc: trang dài ra (thêm món, mở giỏ) cũng không bị xê dịch */
+  scrollbar-gutter: stable;
   scroll-behavior: smooth;
 }
 
@@ -61,9 +63,90 @@ html {
   }
 }
 
-/* Máy nào bật "giảm chuyển động" thì tắt hiệu ứng */
+/* ===== Các hoạt ảnh khác (đổi tốc độ: sửa số giây ở từng dòng animation) ===== */
+
+/* 1. Trượt vào từ bên phải: dùng cho trang Thanh toán (cảm giác "đi tiếp") */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.slide-in-right {
+  animation: slide-in-right 0.35s ease-out backwards;
+}
+
+/* 2. Hiện lần lượt: các phần tử con của khung có class "stagger" nổi lên nối tiếp nhau,
+      mỗi cái trễ hơn cái trước 0,05 giây (từ cái thứ 9 trở đi hiện cùng lúc) */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.stagger > * {
+  animation: rise 0.35s ease-out backwards;
+  animation-delay: 0.4s;
+}
+.stagger > *:nth-child(1) { animation-delay: 0s; }
+.stagger > *:nth-child(2) { animation-delay: 0.05s; }
+.stagger > *:nth-child(3) { animation-delay: 0.1s; }
+.stagger > *:nth-child(4) { animation-delay: 0.15s; }
+.stagger > *:nth-child(5) { animation-delay: 0.2s; }
+.stagger > *:nth-child(6) { animation-delay: 0.25s; }
+.stagger > *:nth-child(7) { animation-delay: 0.3s; }
+.stagger > *:nth-child(8) { animation-delay: 0.35s; }
+
+/* 3. Bật nảy: dấu ✓ ở màn "Đặt hàng thành công" phóng to quá một chút rồi về vừa */
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.pop {
+  animation: pop 0.5s ease-out backwards;
+  animation-delay: 0.15s;
+}
+
+/* 4. Nảy nhẹ: badge số ly trên icon giỏ hàng mỗi lần số lượng thay đổi */
+@keyframes bump {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.bump {
+  animation: bump 0.3s ease-out;
+}
+
+/* Máy nào bật "giảm chuyển động" thì tắt hết hoạt ảnh */
 @media (prefers-reduced-motion: reduce) {
-  .page-enter {
+  .page-enter,
+  .slide-in-right,
+  .stagger > *,
+  .pop,
+  .bump {
     animation: none;
   }
 }
