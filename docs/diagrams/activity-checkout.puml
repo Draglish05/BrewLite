@@ -1,0 +1,74 @@
+@startuml activity-checkout
+title Activity diagram: từ xem menu đến xác nhận đơn
+
+|Khách hàng|
+start
+:Xem menu;
+:Chọn sản phẩm, size, topping;
+:Thêm vào giỏ hàng;
+:Xem giỏ hàng và tổng tiền;
+:Bấm "Thanh toán";
+
+|Giao diện Next.js|
+if (Đã đăng nhập?) then (chưa)
+  |Khách hàng|
+  :Đăng nhập hoặc đăng ký;
+  |NestJS API|
+  :Xác thực, phát JWT;
+  |Giao diện Next.js|
+  :Lưu token;
+else (rồi)
+endif
+
+:Gửi POST /orders kèm token;
+
+|NestJS API|
+:Kiểm tra JWT và validate dữ liệu;
+if (Hợp lệ?) then (không)
+  |Giao diện Next.js|
+  :Hiển thị lỗi, giữ nguyên giỏ hàng;
+  stop
+else (có)
+endif
+
+|NestJS API|
+:Mở transaction, kiểm tra tồn kho;
+if (Đủ hàng?) then (không)
+  :Hủy transaction;
+  |Giao diện Next.js|
+  :Báo hết hàng, giữ nguyên giỏ hàng;
+  stop
+else (đủ)
+endif
+
+|NestJS API|
+:Trừ tồn kho, lưu đơn PENDING, commit;
+:Trả về mã đơn;
+
+|Giao diện Next.js|
+:Gửi POST /payments kèm Idempotency-Key;
+
+|NestJS API|
+if (Idempotency-Key đã xử lý?) then (rồi)
+  :Trả lại kết quả của lần trước;
+else (chưa)
+  |Cổng thanh toán|
+  :Xử lý thanh toán;
+  |NestJS API|
+  if (Thanh toán thành công?) then (thành công)
+    :Chuyển đơn sang PAID, cộng điểm thưởng;
+  else (lỗi)
+    :Chuyển đơn sang PAYMENT_FAILED;
+  endif
+endif
+
+|Giao diện Next.js|
+if (Đơn PAID?) then (có)
+  :Làm rỗng giỏ hàng;
+  :Hiển thị xác nhận đơn (mã đơn, trạng thái PAID);
+  stop
+else (không)
+  :Báo lỗi thanh toán, giữ nguyên giỏ hàng để thử lại;
+  stop
+endif
+@enduml
