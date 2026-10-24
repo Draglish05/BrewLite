@@ -1,0 +1,45 @@
+@startuml usecase-overview
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Khách hàng" as Customer
+actor "Barista" as Barista
+actor "Cổng thanh toán\n(mô phỏng)" as Gateway
+
+rectangle "BrewLite" {
+  usecase "Xem menu\n(FR-01)" as UC_Menu
+  usecase "Xem chi tiết sản phẩm\n(FR-02)" as UC_Detail
+  usecase "Chọn size và topping\n(FR-03)" as UC_Option
+  usecase "Quản lý giỏ hàng\n(FR-04, FR-05)" as UC_Cart
+  usecase "Đăng ký\n(FR-06)" as UC_Register
+  usecase "Đăng nhập\n(FR-07, FR-08)" as UC_Login
+  usecase "Đặt và thanh toán đơn hàng\n(FR-09 đến FR-14)" as UC_Order
+  usecase "Xem xác nhận đơn\n(FR-16)" as UC_Confirm
+  usecase "Xem lịch sử đơn\n(FR-17)" as UC_History
+  usecase "Hủy đơn\n(FR-19)" as UC_Cancel
+  usecase "Cập nhật trạng thái pha chế\n(FR-20)" as UC_Prepare
+
+  usecase "Kiểm tra tồn kho\n(FR-10)" as UC_Stock
+  usecase "Áp mã khuyến mãi\n(FR-11)" as UC_Promo
+}
+
+Customer --> UC_Menu
+Customer --> UC_Detail
+Customer --> UC_Cart
+Customer --> UC_Register
+Customer --> UC_Login
+Customer --> UC_Order
+Customer --> UC_Confirm
+Customer --> UC_History
+Customer --> UC_Cancel
+
+Barista --> UC_Prepare
+
+UC_Order --> Gateway
+
+UC_Detail ..> UC_Option : <<include>>
+UC_Order ..> UC_Login : <<include>>
+UC_Order ..> UC_Stock : <<include>>
+UC_Promo ..> UC_Order : <<extend>>
+UC_Order ..> UC_Confirm : <<include>>
+@enduml

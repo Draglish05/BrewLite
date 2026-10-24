@@ -1,0 +1,29 @@
+@startuml usecase-checkout
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Khách hàng" as Customer
+actor "Cổng thanh toán\n(mô phỏng)" as Gateway
+
+rectangle "BrewLite" {
+  usecase "UC-01\nĐặt và thanh toán đơn hàng" as UC_Order
+  usecase "Đăng nhập\n(FR-07, FR-08)" as UC_Login
+  usecase "Kiểm tra dữ liệu và tồn kho\n(FR-09, FR-10)" as UC_Stock
+  usecase "Áp mã khuyến mãi\n(FR-11)" as UC_Promo
+  usecase "Thanh toán không tiền mặt\n(FR-12, FR-13)" as UC_Pay
+  usecase "Cộng điểm thưởng\n(FR-14)" as UC_Points
+  usecase "Hiển thị xác nhận đơn\n(FR-16)" as UC_Confirm
+  usecase "Hủy đơn\n(FR-19)" as UC_Cancel
+}
+
+Customer --> UC_Order
+Customer --> UC_Cancel
+UC_Pay --> Gateway
+
+UC_Order ..> UC_Login : <<include>>
+UC_Order ..> UC_Stock : <<include>>
+UC_Order ..> UC_Pay : <<include>>
+UC_Order ..> UC_Confirm : <<include>>
+UC_Promo ..> UC_Order : <<extend>>
+UC_Points ..> UC_Pay : <<extend>>
+@enduml
