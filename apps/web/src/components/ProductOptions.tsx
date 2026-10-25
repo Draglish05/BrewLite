@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { SIZES, TOPPINGS } from '@/lib/options';
 import type { Product } from '@/lib/products';
+import { useCart } from '@/store/cart';
 
 export default function ProductOptions({ product }: { product: Product }) {
   const [size, setSize] = useState(SIZES[0]);
   const [selectedToppings, setSelectedToppings] = useState<string[]>([]);
+  const addItem = useCart((state) => state.addItem);
 
   function toggleTopping(name: string) {
     if (selectedToppings.includes(name)) {
@@ -55,6 +57,21 @@ export default function ProductOptions({ product }: { product: Product }) {
       </fieldset>
 
       <p className="text-xl font-bold">Giá: {total.toLocaleString('vi-VN')}đ</p>
+
+      <button
+        onClick={() =>
+          addItem({
+            productId: product.id,
+            name: product.name,
+            size: size.name,
+            toppings: selectedToppings,
+            unitPrice: total,
+          })
+        }
+        className="mt-4 rounded bg-black px-4 py-2 text-white"
+      >
+        Thêm vào giỏ
+      </button>
     </div>
   );
 }
