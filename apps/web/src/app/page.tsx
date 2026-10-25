@@ -10,7 +10,7 @@ export default async function MenuPage() {
 
   return (
     <main className="p-4">
-      <h1 className="mb-4 text-2xl font-bold">BrewLite</h1>
+      <h1 className="mb-4 text-2xl font-bold">Menu</h1>
       <ul className="grid grid-cols-2 gap-4">
         {products.map((product) => (
           <li key={product.id} className="rounded-lg border p-3">
