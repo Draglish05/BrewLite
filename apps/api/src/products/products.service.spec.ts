@@ -32,7 +32,7 @@ describe('ProductsService', () => {
   it('findAll trả về danh sách sản phẩm', async () => {
     prisma.product.findMany.mockResolvedValue([cappuccino]);
 
-    expect(await service.findAll()).toEqual([]);
+    expect(await service.findAll()).toEqual([cappuccino]);
   });
 
   it('findOne trả về đúng sản phẩm theo id', async () => {
