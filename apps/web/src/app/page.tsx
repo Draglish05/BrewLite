@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getProducts } from '@/lib/products';
 
 export default async function MenuPage() {
@@ -13,9 +14,11 @@ export default async function MenuPage() {
       <ul className="grid grid-cols-2 gap-4">
         {products.map((product) => (
           <li key={product.id} className="rounded-lg border p-3">
-            <img src={product.imageUrl} alt={product.name} className="mb-2 w-full" />
-            <p className="font-semibold">{product.name}</p>
-            <p>{product.price.toLocaleString('vi-VN')}đ</p>
+            <Link href={`/products/${product.id}`}>
+              <img src={product.imageUrl} alt={product.name} className="mb-2 w-full" />
+              <p className="font-semibold">{product.name}</p>
+              <p>{product.price.toLocaleString('vi-VN')}đ</p>
+            </Link>
           </li>
         ))}
       </ul>
