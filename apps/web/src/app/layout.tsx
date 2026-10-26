@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import AuthLink from "@/components/AuthLink";
 import CartLink from "@/components/CartLink";
 import "./globals.css";
 
@@ -30,7 +31,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Link href="/" className="text-xl font-bold">
             BrewLite
           </Link>
-          <CartLink />
+          <div className="flex items-center gap-4">
+            <AuthLink />
+            <CartLink />
+          </div>
         </header>
         {children}
       </body>
