@@ -9,15 +9,19 @@ export default async function MenuPage() {
   }
 
   return (
-    <main className="p-4">
+    <main className="mx-auto max-w-3xl p-4">
       <h1 className="mb-4 text-2xl font-bold">Menu</h1>
-      <ul className="grid grid-cols-2 gap-4">
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {products.map((product) => (
-          <li key={product.id} className="rounded-lg border p-3">
-            <Link href={`/products/${product.id}`}>
-              <img src={product.imageUrl} alt={product.name} className="mb-2 w-full" />
+          <li key={product.id} className="rounded-lg border p-2">
+            <Link href={`/products/${product.id}`} className="flex h-full flex-col">
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="mb-2 aspect-square w-full rounded object-cover"
+              />
               <p className="font-semibold">{product.name}</p>
-              <p>{product.price.toLocaleString('vi-VN')}đ</p>
+              <p className="mt-auto">{product.price.toLocaleString('vi-VN')}đ</p>
             </Link>
           </li>
         ))}
