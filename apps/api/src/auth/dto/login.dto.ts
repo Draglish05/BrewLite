@@ -1,9 +1,9 @@
 import { IsEmail, IsString } from 'class-validator';
 
 export class LoginDto {
-  @IsEmail()
+  @IsEmail({}, { message: 'Email không hợp lệ' })
   email: string;
 
-  @IsString()
+  @IsString({ message: 'Mật khẩu không hợp lệ' })
   password: string;
 }
