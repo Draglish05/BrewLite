@@ -15,8 +15,12 @@ export default async function ProductPage({
   }
 
   return (
-    <main className="p-4">
-      <img src={product.imageUrl} alt={product.name} className="mb-4 w-full" />
+    <main className="mx-auto max-w-sm p-4">
+      <img
+        src={product.imageUrl}
+        alt={product.name}
+        className="mb-4 aspect-square w-full rounded object-cover"
+      />
       <h1 className="text-2xl font-bold">{product.name}</h1>
       <ProductOptions product={product} />
     </main>
