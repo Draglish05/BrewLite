@@ -19,6 +19,16 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum PaymentMethod {
+  WALLET
+  CARD
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+}
+
 model Product {
   id         Int         @id @default(autoincrement())
   name       String
@@ -47,6 +57,7 @@ model Order {
   total     Int
   createdAt DateTime    @default(now())
   items     OrderItem[]
+  payments  Payment[]
 }
 
 model OrderItem {
@@ -59,4 +70,15 @@ model OrderItem {
   toppings  String[]
   qty       Int
   lineTotal Int
+}
+
+model Payment {
+  id             Int           @id @default(autoincrement())
+  orderId        Int
+  order          Order         @relation(fields: [orderId], references: [id])
+  idempotencyKey String        @unique
+  amount         Int
+  method         PaymentMethod
+  status         PaymentStatus
+  createdAt      DateTime      @default(now())
 }
