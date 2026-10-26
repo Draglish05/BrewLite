@@ -17,3 +17,10 @@ model Product {
   stock    Int
   version  Int    @default(0)
 }
+
+model User {
+  id            Int    @id @default(autoincrement())
+  email         String @unique
+  passwordHash  String
+  loyaltyPoints Int    @default(0)
+}
